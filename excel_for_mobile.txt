@@ -1,0 +1,248 @@
+# EXCEL LOADING FOR MOBILE (Android) — WORKING SOLUTION
+# Проект: מפעל מוגן שיקומי — Yachdav, Beer Sheva
+
+=========================================================
+ПРОБЛЕМА с чтением Excel на мобильном телефоне
+
+=========================================================
+ПРАВИЛО: ВСЕГДА использовать ДВОЙНОЙ ПАРСЕР
+=========================================================
+
+1. SheetJS  — быстрый, работает на десктопе
+2. JSZip    — надёжный, работает на Android
+3. scoreRows() — выбирает лучший результат автоматически
+
+Оба запускаются параллельно. Побеждает тот, у кого больше
+распознанных имён (שם מקבל) и номеров ТЗ (תעודת זהות).
+
+=========================================================
+ОБЯЗАТЕЛЬНЫЕ ПОДКЛЮЧЕНИЯ В <head>
+=========================================================
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+=========================================================
+ОБЯЗАТЕЛЬНЫЕ НАСТРОЙКИ SheetJS
+=========================================================
+
+XLSX.read(buffer, { type: 'array', cellDates: false, raw: true })
+// cellDates: false — даты приходят как числа, не как Date объекты
+// raw: true — без автоконвертации
+
+XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false, raw: true })
+// header:1 — массив массивов (нужен для scoreRows)
+// НЕ использовать объектный режим без header:1 как единственный метод
+
+=========================================================
+ОБЯЗАТЕЛЬНАЯ fixDate() — конвертация дат
+=========================================================
+
+function fixDate(v) {
+  if (!v && v !== 0) return null;
+  // Excel serial как число ИЛИ строка (JSZip возвращает строку "44019")
+  const serial = (typeof v === 'number') ? v
+    : (typeof v === 'string' && /^\d{4,5}$/.test(v.trim()) ? Number(v.trim()) : null);
+  if (serial !== null && serial > 15000 && serial < 60000) {
+    const d = new Date((serial - 25569) * 86400 * 1000);
+    return pad2(d.getUTCDate()) + '/' + pad2(d.getUTCMonth()+1) + '/' + d.getUTCFullYear();
+  }
+  const s = String(v).trim();
+  // DD/MM/YYYY или DD.MM.YYYY
+  let m = s.match(/^(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})$/);
+  if (m) { let y = Number(m[3]); if (y < 100) y += 2000; return pad2(m[1])+'/'+pad2(m[2])+'/'+y; }
+  // YYYY-MM-DD
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return pad2(m[3])+'/'+pad2(m[2])+'/'+m[1];
+  return null;
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+// ВАЖНО: даты хранить в localStorage как строки "DD/MM/YYYY"
+// НЕ хранить Date объекты — JSON.stringify их ломает (UTC сдвиг)
+// При сравнении использовать parseDMY() — без new Date()
+
+=========================================================
+ОБЯЗАТЕЛЬНЫЙ fallback заголовков
+=========================================================
+
+// Excel не сохраняет пустые ячейки → headers[i] может быть ''
+// Всегда использовать:
+const key = headers[i] || fixedSheet1Headers[i] || ('col_' + i);
+
+const fixedSheet1Headers = [
+  "מס'", "מס' בסדנה", 'שם מקבל השרות', 'תעודת זהות', 'סוג שירות', 'סדנה',
+  'קופת חולים', 'סניף', "מס' טלפון", 'מחלות רקע', 'מיגבלה', 'רחוב', 'נייד',
+  'בבית', 'תאריך לידה', 'גיל', 'גר עם', 'איש קשר', 'קירבה', "טל'", 'עו"ס',
+  'טלפון', 'שירות יחיד', 'ממ"ד', 'מקלט', 'אין', 'תאריך קליטה',
+  'תאריך כתיבה תוכנית שיקום', 'מין'
+];
+
+=========================================================
+РАБОЧИЙ КОД — ПОЛНЫЙ ШАБЛОН
+=========================================================
+
+function colToIndex(cellRef) {
+  const letters = String(cellRef || '').replace(/[^A-Z]/gi, '').toUpperCase();
+  let n = 0;
+  for (let i = 0; i < letters.length; i++) n = n * 26 + (letters.charCodeAt(i) - 64);
+  return n - 1;
+}
+
+async function parseSheet1WithJSZip(buffer) {
+  if (!window.JSZip) return [];
+  const zip = await JSZip.loadAsync(buffer);
+  const shared = [];
+  const ssFile = zip.file('xl/sharedStrings.xml');
+  if (ssFile) {
+    const ssXml = await ssFile.async('string');
+    const ssDoc = new DOMParser().parseFromString(ssXml, 'application/xml');
+    ssDoc.querySelectorAll('si').forEach(si => {
+      let s = '';
+      si.querySelectorAll('t').forEach(t => { s += t.textContent || ''; });
+      shared.push(s);
+    });
+  }
+  let sheetFile = zip.file('xl/worksheets/sheet1.xml');
+  if (!sheetFile) {
+    const files = Object.keys(zip.files)
+      .filter(k => /^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort();
+    if (files.length) sheetFile = zip.file(files[0]);
+  }
+  if (!sheetFile) return [];
+  const xml = await sheetFile.async('string');
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  const rows = [];
+  doc.querySelectorAll('sheetData row').forEach(rowEl => {
+    const row = [];
+    rowEl.querySelectorAll('c').forEach(c => {
+      const col = colToIndex(c.getAttribute('r') || '');
+      const type = c.getAttribute('t') || '';
+      let value = '';
+      if (type === 'inlineStr') {
+        value = Array.from(c.querySelectorAll('is t')).map(t => t.textContent || '').join('');
+      } else {
+        const v = c.querySelector('v');
+        const raw = v ? (v.textContent || '') : '';
+        if (type === 's') value = shared[Number(raw)] ?? '';
+        else if (type === 'str') value = raw;
+        else if (type === 'b') value = raw === '1' ? 'TRUE' : 'FALSE';
+        else value = raw;
+      }
+      row[col] = value;
+    });
+    for (let i = 0; i < fixedSheet1Headers.length; i++) if (row[i] == null) row[i] = '';
+    if (row.some(v => String(v).trim() !== '')) rows.push(row);
+  });
+  return rows;
+}
+
+function sheetJsRows(buffer) {
+  if (!window.XLSX) return [];
+  try {
+    const wb = XLSX.read(buffer, { type: 'array', cellDates: false });
+    const ws = wb.Sheets['Sheet1'] || wb.Sheets[wb.SheetNames[0]];
+    if (!ws) return [];
+    return XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false, raw: true });
+  } catch(e) { return []; }
+}
+
+function scoreRows(rows) {
+  let score = 0;
+  for (const r of rows.slice(0, 20)) {
+    const joined = r.map(c => String(c||'').trim()).join('|');
+    if (joined.includes('שם מקבל')) score += 1000;
+    if (joined.includes('תעודת זהות')) score += 1000;
+    if (String(r[2]||'').trim().length > 1 && !/^\d+$/.test(String(r[2]||'').trim())) score += 100;
+    if (/^0?\d{7,9}$/.test(String(r[3]||'').trim().replace(/\D/g,''))) score += 10;
+  }
+  return score;
+}
+
+async function loadExcelFile(file) {
+  if (!file) return;
+  const status = document.getElementById('excelStatus');
+  if (status) status.textContent = 'קורא קובץ...';
+  try {
+    const buffer = await file.arrayBuffer();
+
+    // Сохранить raw Excel для других форм
+    try {
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += 8192)
+        binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+      localStorage.setItem('rehab_excel_raw_v1',
+        JSON.stringify({ base64: btoa(binary), fileName: file.name }));
+    } catch(e2) {}
+
+    // Запустить оба парсера, выбрать лучший
+    const rowsFromSheetJS = sheetJsRows(buffer);
+    const rowsFromZip = await parseSheet1WithJSZip(buffer);
+    let raw = [rowsFromSheetJS, rowsFromZip]
+      .filter(r => Array.isArray(r) && r.length)
+      .sort((a, b) => scoreRows(b) - scoreRows(a))[0] || [];
+
+    if (!raw.length) {
+      alert('הקובץ לא נקרא. בדוק שזה קובץ Excel אמיתי מסוג xlsx.');
+      return;
+    }
+
+    // Найти строку заголовков
+    let headerIdx = -1;
+    for (let i = 0; i < Math.min(raw.length, 50); i++) {
+      const row = raw[i].map(c => String(c||'').trim());
+      if (row.some(x => x.includes('שם מקבל')) && row.some(x => x.includes('תעודת זהות'))) {
+        headerIdx = i; break;
+      }
+    }
+    const headers = headerIdx >= 0 ? raw[headerIdx].map(c => String(c||'').trim()) : fixedSheet1Headers;
+    const dataStartIdx = headerIdx >= 0 ? headerIdx + 1 : 0;
+
+    // Построить объекты строк
+    const objRows = raw.slice(dataStartIdx)
+      .filter(r => r.some(cell => String(cell||'').trim() !== ''))
+      .map(r => {
+        const obj = {};
+        const max = Math.max(headers.length, fixedSheet1Headers.length, r.length);
+        for (let i = 0; i < max; i++) {
+          const key = headers[i] || fixedSheet1Headers[i] || ('col_' + i);
+          if (key) obj[key] = r[i] ?? '';
+        }
+        return obj;
+      });
+
+    // Здесь map objRows → clients и сохранить в localStorage
+    // ...
+
+    if (status) status.textContent = '✓ נטענו X מקבלי שירות';
+  } catch(err) {
+    console.error(err);
+    if (status) status.textContent = 'שגיאה בקריאת Excel';
+    alert('שגיאה: ' + (err && err.message ? err.message : err));
+  }
+}
+
+=========================================================
+ЧЕГО НЕЛЬЗЯ ДЕЛАТЬ
+=========================================================
+
+❌ XLSX.utils.sheet_to_json(ws, { header:1 }) как единственный метод
+❌ cellDates: true  (даты приходят UTC, сдвигаются на Android)
+❌ new Date(isoString) для сравнения дат (UTC сдвиг ±1 день)
+❌ JSON.stringify(Date объект) → при restore .getMonth() = undefined
+❌ Хранить даты в localStorage как Date объекты
+❌ Забыть подключить jszip в <script src>
+
+=========================================================
+ПРИНЦИП РАБОТЫ С ДАТАМИ В localStorage
+=========================================================
+
+// Сохранять: строка "DD/MM/YYYY"
+// Сравнивать:
+function parseDMY(s) {
+  const p = String(s||'').split('/');
+  if (p.length !== 3) return null;
+  return { d: Number(p[0]), m: Number(p[1]), y: Number(p[2]) };
+}
+// Никогда не делать new Date(строка_из_localStorage)
