@@ -103,7 +103,7 @@ body {
 .field textarea {
   width:100%; padding:10px 14px; border:1.5px solid var(--border);
   border-radius:8px; font-family:inherit; font-size:14px; min-height:110px;
-  resize:vertical; background:var(--yellow-light); line-height:1.7;
+  resize:none; overflow:hidden; background:var(--yellow-light); line-height:1.7;
 }
 .field textarea:focus { outline:none; border-color:var(--yellow-dark); background:white; }
 .char-hint { font-size:11px; color:var(--muted); margin-top:3px; }
@@ -241,7 +241,7 @@ body {
         <span style="display:flex;align-items:center;gap:6px;"><span class="field-num">5</span>תוכן שיחה <span class="req">*</span></span>
         <button class="translate-btn" onclick="translateField('content', this)">🌐 תרגם לעברית</button>
       </div>
-      <textarea id="content" placeholder="תאר את תוכן השיחה... / Опиши содержание беседы..."></textarea>
+      <textarea id="content" placeholder="תאר את תוכן השיחה... / Опиши содержание беседы..." oninput="autoResize(this)"></textarea>
       <div id="content_status" style="font-size:12px;color:var(--muted);margin-top:3px;min-height:16px;"></div>
     </div>
 
@@ -251,7 +251,7 @@ body {
         <span style="display:flex;align-items:center;gap:6px;"><span class="field-num">6</span>סיכום | החלטה</span>
         <button class="translate-btn" onclick="translateField('summary', this)">🌐 תרגם לעברית</button>
       </div>
-      <textarea id="summary" placeholder="סיכום, החלטות ומעקב... / Итог, решения и последующие шаги..."></textarea>
+      <textarea id="summary" placeholder="סיכום, החלטות ומעקב... / Итог, решения и последующие шаги..." oninput="autoResize(this)"></textarea>
       <div id="summary_status" style="font-size:12px;color:var(--muted);margin-top:3px;min-height:16px;"></div>
     </div>
 
@@ -456,52 +456,90 @@ function validate() {
 // ── CLONE SAVE ──
 function buildPageHTML() {
   const clone = document.documentElement.cloneNode(true);
+
+  // Hide UI controls
   const topBar = clone.querySelector('.top-bar'); if(topBar) topBar.style.display='none';
   const sb = clone.querySelector('#statusBar'); if(sb) sb.style.display='none';
   const lp = clone.querySelector('.load-panel'); if(lp) lp.style.display='none';
+  // Remove back button and modals
+  clone.querySelectorAll('[onclick="history.back()"]').forEach(el => el.closest('div') && el.closest('div[style*="fixed"]') ? el.closest('div[style*="fixed"]').remove() : el.remove());
 
-  // Sync textareas
+  // ── Textareas — write content as value attribute ──
   ['content','summary'].forEach(id => {
     const orig = document.getElementById(id);
     const cl = clone.querySelector('#'+id);
-    if(orig && cl) cl.textContent = orig.value;
+    if (orig && cl) {
+      cl.textContent = orig.value;
+      cl.style.height = orig.scrollHeight + 'px';
+      cl.style.overflow = 'hidden';
+      cl.style.resize = 'none';
+    }
   });
 
-  // Sync name input
-  const origName = document.getElementById('nameInput');
+  // ── Name input ──
+  const nameVal = document.getElementById('nameInput').value;
   const clName = clone.querySelector('#nameInput');
-  if(origName && clName) clName.value = origName.value;
+  if (clName) clName.setAttribute('value', nameVal);
 
-  // Sync staff select
-  const origStaff = document.getElementById('staffSelect');
+  // ── Staff select — rebuild with correct selected ──
+  const staffVal = document.getElementById('staffSelect').value;
   const clStaff = clone.querySelector('#staffSelect');
-  if(origStaff && clStaff) {
-    const val = origStaff.value;
-    Array.from(clStaff.options).forEach(opt => { opt.selected = (opt.value === val); });
+  if (clStaff) {
+    Array.from(clStaff.options).forEach(opt => {
+      if (opt.value === staffVal) opt.setAttribute('selected', '');
+      else opt.removeAttribute('selected');
+    });
   }
 
-  // Sync staffOther
+  // ── staffOther ──
   const origOther = document.getElementById('staffOther');
   const clOther = clone.querySelector('#staffOther');
-  if(origOther && clOther) {
-    clOther.value = origOther.value;
+  if (origOther && clOther) {
+    clOther.setAttribute('value', origOther.value);
     clOther.style.display = origOther.style.display;
   }
 
-  // Sync date
+  // ── Date ──
   const origDate = document.getElementById('docDate');
   const clDate = clone.querySelector('#docDate');
-  if(origDate && clDate) clDate.value = origDate.value;
+  if (origDate && clDate) clDate.setAttribute('value', origDate.value);
 
-  // Sync date display
-  const origFDate = document.getElementById('fDate');
+  // ── Date display ──
   const clFDate = clone.querySelector('#fDate');
-  if(origFDate && clFDate) clFDate.textContent = origFDate.textContent;
+  if (clFDate) clFDate.textContent = document.getElementById('fDate').textContent;
 
-  // Sync topic display
-  const origTopic = document.getElementById('topicDisplayText');
+  // ── Topic display ──
   const clTopic = clone.querySelector('#topicDisplayText');
-  if(origTopic && clTopic) clTopic.textContent = origTopic.textContent;
+  if (clTopic) clTopic.textContent = document.getElementById('topicDisplayText').textContent;
+
+  // ── Inject restore script so reopened file shows correct values ──
+  const restoreScript = clone.ownerDocument ? clone.ownerDocument.createElement('script') : document.createElement('script');
+  restoreScript.textContent = `
+    window.addEventListener('DOMContentLoaded', function() {
+      // Restore JS variables from saved HTML
+      var nameEl = document.getElementById('nameInput');
+      if (nameEl) { window.selectedName = nameEl.value; }
+      var staffEl = document.getElementById('staffSelect');
+      if (staffEl) { window.selectedTopic = document.getElementById('topicDisplayText') ? document.getElementById('topicDisplayText').textContent : ''; }
+      // Restore staffSelect after buildAllStaffSelect rebuilds it
+      var _savedStaff = ${JSON.stringify(staffVal)};
+      var _savedTopic = ${JSON.stringify(document.getElementById('topicDisplayText').textContent)};
+      var _savedName  = ${JSON.stringify(nameVal)};
+      setTimeout(function() {
+        var s = document.getElementById('staffSelect');
+        if (s) s.value = _savedStaff;
+        window.selectedName  = _savedName;
+        window.selectedTopic = _savedTopic;
+        // Auto-resize textareas
+        ['content','summary'].forEach(function(id) {
+          var ta = document.getElementById(id);
+          if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+        });
+      }, 300);
+    });
+  `;
+  const body = clone.querySelector('body');
+  if (body) body.appendChild(restoreScript);
 
   return '<!DOCTYPE html>\n' + clone.outerHTML;
 }
@@ -526,88 +564,17 @@ async function saveDoc() {
 
 async function emailDoc() {
   if (!validate()) return;
-  openEmailModal();
-}
-
-const STAFF_EMAILS = {
-  'אלכסנדר חטקביץ':  'alexander@yachdav.org.il',
-  'ליבי יוסופוב':    'libi@yachdav.org.il',
-  'אריסטרך קפוסטה':  'aristarch@yachdav.org.il',
-  'שלום מימון':      'shalom@yachdav.org.il',
-  'אנדרי אברמוביץ':  'andrei@yachdav.org.il',
-  'רוזט פירוזה':     'rozet@yachdav.org.il'
-};
-
-function openEmailModal() {
-  const old = document.getElementById('emailModal');
-  if (old) old.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'emailModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-
-  const checkboxes = Object.keys(STAFF_EMAILS).map(name => `
-    <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #f5e9c0;" onmouseover="this.style.background='#fffbe6'" onmouseout="this.style.background=''">
-      <input type="checkbox" value="${name}" style="width:18px;height:18px;cursor:pointer;accent-color:#1a3a5c;flex-shrink:0;">
-      <span style="font-size:14px;font-weight:600;flex:1;">${name}</span>
-      <span style="font-size:11px;color:#aaa;direction:ltr;">${STAFF_EMAILS[name]}</span>
-    </label>
-  `).join('');
-
-  modal.innerHTML = `
-    <div style="background:white;border-radius:14px;max-width:500px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,0.3);overflow:hidden;direction:rtl;">
-      <div style="background:#1a3a5c;color:white;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:16px;font-weight:700;">✉ בחר נמענים לשליחה</span>
-        <span onclick="document.getElementById('emailModal').remove()" style="cursor:pointer;font-size:24px;line-height:1;opacity:.7;">×</span>
-      </div>
-      <div style="padding:16px 20px 8px;">
-        <div style="font-size:12px;color:#888;margin-bottom:10px;">ניתן לבחור יותר מנמען אחד:</div>
-        <div style="border:1.5px solid #e2c96e;border-radius:8px;overflow:hidden;">
-          ${checkboxes}
-        </div>
-        <div style="margin-top:14px;">
-          <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:6px;">כתובת נוספת (אופציונלי):</div>
-          <input id="extraEmail" type="email" placeholder="email@example.com" dir="ltr"
-            style="width:100%;padding:9px 12px;border:1.5px solid #e2c96e;border-radius:8px;font-family:inherit;font-size:14px;background:#fffbe6;box-sizing:border-box;">
-        </div>
-      </div>
-      <div style="padding:14px 20px 18px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #f0e8c8;margin-top:10px;">
-        <button onclick="document.getElementById('emailModal').remove()"
-          style="padding:9px 22px;border-radius:8px;border:1.5px solid #ccc;background:white;font-family:inherit;font-size:13px;cursor:pointer;">ביטול</button>
-        <button onclick="sendEmailNow()"
-          style="padding:9px 22px;border-radius:8px;border:none;background:#1a3a5c;color:white;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">✉ שלח</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-}
-
-async function sendEmailNow() {
-  const checked = Array.from(document.querySelectorAll('#emailModal input[type=checkbox]:checked')).map(cb => cb.value);
-  const extra = document.getElementById('extraEmail').value.trim();
-  const toAddresses = [...checked.map(n => STAFF_EMAILS[n]), ...(extra ? [extra] : [])].filter(Boolean);
-
-  if (!toAddresses.length) { alert('יש לבחור לפחות נמען אחד'); return; }
-  document.getElementById('emailModal').remove();
-
   const html = buildPageHTML();
   const filename = safeFileName(selectedName) + '_תיעוד_שיחה_' + fmt() + '.html';
   const file = new File([html], filename, {type:'text/html'});
-
   if (navigator.canShare && navigator.canShare({files:[file]}) && navigator.share) {
-    try { await navigator.share({title:'תיעוד שיחה – '+selectedName, files:[file]}); showStatus('נפתח שיתוף','success'); return; }
-    catch(e) { if (e.name==='AbortError') return; }
+    try { await navigator.share({title:'תיעוד שיחה – '+selectedName, files:[file]}); showStatus('נשלח בהצלחה','success'); return; }
+    catch(e) { if(e.name==='AbortError') return; }
   }
-
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.href = URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
   a.download = filename; a.click();
-
-  const subject = encodeURIComponent('תיעוד שיחה – ' + selectedName);
-  const body = encodeURIComponent('שלום,\nמצ"ב תיעוד שיחה עם ' + selectedName + '.\n\nיש לצרף את הקובץ שהורד.');
-  window.location.href = 'mailto:' + toAddresses.join(',') + '?subject=' + subject + '&body=' + body;
-  showStatus('הקובץ הורד. יש לצרפו ידנית ל: ' + toAddresses.join(', '), 'error');
+  showStatus('הקובץ הורד','success');
 }
 
 function clearAll() {
@@ -626,11 +593,18 @@ function clearAll() {
   showStatus('','');
 }
 
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 window.addEventListener('load', () => {
   document.getElementById('docDate').value = formatDate();
   document.getElementById('fDate').textContent = dateToHe(formatDate());
   renderTopics('');
   renderNameOptions('');
+  // Auto-resize textareas that already have content
+  document.querySelectorAll('.field textarea').forEach(ta => autoResize(ta));
   window.addEventListener('beforeunload', e => { e.preventDefault(); e.returnValue=''; });
 });
 </script>
