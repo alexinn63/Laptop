@@ -1627,7 +1627,7 @@ textarea:focus {
       <h2>3 פרומפטים למינוט הראשון</h2>
       <p class="ob-sub">אחרי שתסגור את החלון הזה, לחץ על כל כרטיס — העתק את הטקסט ל-Claude או ChatGPT. זה הכל.</p>
       <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:8px">
-        <div style="background:var(--bg2);border:1px solid rgba(212,168,67,0.25);border-radius:14px;padding:16px 18px;cursor:pointer" onclick="obGoToPrompt('tt','tt_02')">
+        <div style="background:var(--bg2);border:1px solid rgba(212,168,67,0.25);border-radius:14px;padding:16px 18px;cursor:pointer" onclick="obGoToPrompt('thinktank','tt_02')">
           <div style="font-size:13px;color:var(--gold);font-weight:600;margin-bottom:4px">1 — הצעד הראשון המומלץ</div>
           <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px">🔴 Red Team — איפה אנחנו טועים</div>
           <div style="font-size:14px;color:var(--text3)">פרומפט ביקורת קשה. ה-AI יבדוק את הארגון כאילו הוא משקיע חיצוני ויגיד לך מה לא עובד.</div>
@@ -3027,7 +3027,7 @@ function render(){
   let secs=data.filter(s=>!s.system&&(showArchive?!!s.archived:!s.archived));
   if(!q&&!tag) secs=secs.filter(s=>s.id===active);
   else secs=secs.filter(s=>s.items.some(i=>matches(i,s,q,tag)));
-  const backBtn=`<div class="no-print" style="margin-bottom:14px"><button class="sec sm" onclick="active='guide';save();render()">← חזרה למדריך</button></div>`;
+  const backBtn=`<div class="no-print" style="margin-bottom:14px"><button class="sec sm" onclick="window._resetToGuide()">← חזרה למדריך</button></div>`;
   c.innerHTML=backBtn+(secs.length?secs.map(s=>secHTML(s,q,tag)).join(''):'<div class="panel empty"><div style="font-size:32px;margin-bottom:12px">🔍</div><div>לא נמצאו פרומפטים.</div></div>');
 }
 
