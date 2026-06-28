@@ -1330,12 +1330,28 @@ function openBdays(people){
 }
 
 function openNeeds(people){
+  const now=new Date();
+  function delayDays(p){
+    const d=rehabDateOf(p);
+    if(!d) return null;
+    const interval=rehabIntervalMonths(p);
+    const due=new Date(d.getFullYear(),d.getMonth()+interval,d.getDate(),12,0,0);
+    return Math.max(0,Math.floor((now-due)/(1000*60*60*24)));
+  }
+  // sort by delay descending (most overdue first), no-date at end
+  const sorted=[...people].sort((a,b)=>{const da=delayDays(a),db=delayDays(b);if(da===null&&db===null)return 0;if(da===null)return 1;if(db===null)return -1;return db-da;});
   const grouped={};
-  people.forEach(p=>{const m=workshopOf(p)||'אחר';(grouped[m]||(grouped[m]=[])).push(p)});
+  sorted.forEach(p=>{const m=workshopOf(p)||'אחר';(grouped[m]||(grouped[m]=[])).push(p)});
   const cards=Object.entries(grouped).map(([m,arr])=>{
     const c=MC[m]||'#999';
     return `<div style="font-size:11px;font-weight:700;color:${c};padding:6px 0 4px">${m} — ${arr.length}</div>`+
-    arr.map((p,i)=>`<div class="pc" style="animation-delay:${i*.06}s"><div class="pc-av" style="background:linear-gradient(135deg,${c},${c}88)">${initials(nameOf(p))}</div><div class="pc-info"><div class="pc-name">${nameOf(p)}</div></div><span class="pc-badge" style="background:${c}20;color:${c}">${m}</span></div>`).join('');
+    arr.map((p,i)=>{
+      const days=delayDays(p);
+      const badge=days===null
+        ?`<span class="pc-badge" style="background:#fee2e2;color:#b91c1c;font-size:10px">⚠️ אין תוכנית</span>`
+        :`<span class="pc-badge" style="background:#fee2e2;color:#b91c1c;font-size:10px">⚠️ באיחור ${days} ימים</span>`;
+      return `<div class="pc" style="animation-delay:${i*.06}s"><div class="pc-av" style="background:linear-gradient(135deg,${c},${c}88)">${initials(nameOf(p))}</div><div class="pc-info"><div class="pc-name">${nameOf(p)}</div></div>${badge}</div>`;
+    }).join('');
   }).join('');
   openPanel(`<div class="ph" style="background:linear-gradient(135deg,#fff5f5,#ffe8e8)"><button type="button" class="ph-close" data-close-panel="1" onclick="closePanel()">✕</button><span class="ph-emoji">⚠️</span><h3>ממתינים לתוכנית שיקום</h3><span class="ph-cnt" style="background:#c0392b">${people.length} ממתינים</span></div><div class="pb">${cards}</div>`);
 }
