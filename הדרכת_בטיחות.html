@@ -68,7 +68,7 @@ body { font-family: Heebo, Arial, sans-serif; background: var(--bg); color: var(
 .status-bar-top.success { background: #ecfdf5; color: var(--green); display: block; border-bottom: 2px solid var(--green); } .status-bar-top.error { background: #fef2f2; color: var(--red); display: block; border-bottom: 2px solid var(--red); }
 @media (max-width: 600px) { body { font-size: 14px; } .top-bar { position: static; flex-direction: column; padding: 8px 10px; gap: 8px; } .top-bar-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .btn { width: 100%; justify-content: center; padding: 8px 6px; font-size: 12px; } .page { width: 100%; margin: 0; border-radius: 0; box-shadow: none; } .load-panel { padding: 14px 12px; } .manual-grid { grid-template-columns: 1fr; } .doc-header { flex-direction: column; text-align: center; padding: 14px 12px 10px; } .doc-header-logos { gap: 10px; } .doc-header-logos img { height: 34px; max-width: 92px; } .doc-title h1 { font-size: 18px; } .doc-body { padding: 12px; } .sig-table { font-size: 11px; } }
 @page { size: A4 portrait; margin: 6mm; }
-@media print { html, body { width: auto; height: auto; min-height: 0; margin: 0; padding: 0; background: #ffffff; overflow: visible; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .top-bar, .load-panel, .top-bar-actions, .status-bar-top, .sig-cell-btn { display: none !important; } .page { width: 198mm; max-width: 198mm; margin: 0 auto; padding: 0; border-radius: 0; box-shadow: none; overflow: visible; } .doc-body { padding: 0; margin: 0; min-height: 285mm; display: flex; flex-direction: column; } .doc-header { padding: 0 0 2mm; margin: 0 0 2mm; border-bottom: 1px solid var(--border); display: flex; flex-direction: row; align-items: center; justify-content: space-between; } .doc-header-logos img { height: 12.5mm; max-width: 39mm; } .doc-title h1 { font-size: 15.5pt; line-height: 1.12; } .doc-title p { font-size: 8pt; } .doc-intro { font-size: 9.5pt; margin-bottom: 2mm; } .section-title { font-size: 11.5pt; margin-top: 2mm; margin-bottom: 1mm; padding-right: 2mm; border-right: 1mm solid var(--primary-mid); } .rules-list { margin-bottom: 2mm; } .rules-list li { font-size: 8.6pt; padding: 2px 16px 2px 0; line-height: 1.35; } .hours-box, .notice-box { font-size: 8.7pt; padding: 1.5mm 2.5mm; margin: 1mm 0 1mm; } .confirm-text { font-size: 9pt; margin-bottom: 2mm; line-height: 1.35; } .sig-section-title { font-size: 13pt; margin-top: 2mm; margin-bottom: 2mm; padding-top: 2mm; border-top: 0.45mm solid var(--primary); } .sig-table th { font-size: 8.5pt; padding: 1.5mm 2mm; } .sig-table td { font-size: 8.5pt; padding: 1mm 2mm; } .sig-cell { height: 18mm; } .sig-cell canvas { height: 18mm; } }
+@media print { html, body { width: auto; height: auto; min-height: 0; margin: 0; padding: 0; background: #ffffff; overflow: visible; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .top-bar, .load-panel, .top-bar-actions, .status-bar-top, .sig-cell-btn { display: none !important; } .page { width: 198mm; max-width: 198mm; margin: 0 auto; padding: 0; border-radius: 0; box-shadow: none; overflow: visible; } .doc-body { padding: 0; margin: 0; min-height: 0; display: block; } .doc-header { padding: 0 0 2.5mm; margin: 0 0 2.5mm; border-bottom: 1px solid var(--border); display: flex; flex-direction: row; align-items: center; justify-content: space-between; } .doc-header-logos img { height: 13mm; max-width: 40mm; } .doc-title h1 { font-size: 16pt; line-height: 1.15; } .doc-title p { font-size: 8.5pt; } .doc-intro { font-size: 10pt; margin-bottom: 2.5mm; line-height: 1.4; } .section-title { font-size: 12.5pt; margin-top: 3mm; margin-bottom: 1.5mm; padding-right: 2mm; border-right: 1mm solid var(--primary-mid); } .rules-list { margin: 0 0 2.5mm; } .rules-list li { font-size: 9.3pt; padding: 2.2px 16px 2.2px 0; line-height: 1.7; } .section-break-before { break-before: page; page-break-before: always; margin-top: 0 !important; } .hours-box, .notice-box { font-size: 9.3pt; padding: 1.8mm 3mm; margin: 1.2mm 0; } .confirm-text { font-size: 9.5pt; margin-bottom: 2.5mm; line-height: 1.4; } .sig-section-title { font-size: 14pt; margin-top: 3mm; margin-bottom: 2.5mm; padding-top: 2.5mm; border-top: 0.45mm solid var(--primary); } .sig-table { break-inside: avoid; page-break-inside: avoid; } .sig-table th { font-size: 9pt; padding: 1.8mm 2mm; } .sig-table td { font-size: 9pt; padding: 1.3mm 2mm; } .sig-table tr { break-inside: avoid; page-break-inside: avoid; } .sig-cell { height: 20mm; } .sig-cell canvas { height: 20mm; } }
 
 
 /* Header logo layout: logo on each side, title centered */
@@ -127,7 +127,7 @@ body { font-family: Heebo, Arial, sans-serif; background: var(--bg); color: var(
     <button class="btn btn-clear" onclick="clearAll()">✕ נקה</button>
     <button class="btn btn-print" onclick="window.print()">🖨 הדפס</button>
     <button class="btn btn-email" onclick="emailDoc()">✉ שלח במייל</button>
-    <button class="btn btn-save" onclick="saveDoc()">📁 שמור בתיקייה</button>
+    <button class="btn btn-save" onclick="savePDF()">📄 שמור PDF</button>
   </div>
 </div>
 <div id="statusBar" class="status-bar-top"></div>
@@ -163,7 +163,7 @@ body { font-family: Heebo, Arial, sans-serif; background: var(--bg); color: var(
     <div class="section-title">4. הוראות בטיחות אש, חשמל ובטיחות כללית</div><div class="hours-box">יש להודיע למורה / למדריך בסדנה בכל אחד מהמקרים הבאים:</div><ul class="rules-list">
       <li>כאשר רואים סימני עשן או אש.</li><li>כאשר שומעים או רואים הבזקי ניצוצות או רעש חוזר מאחד המכשירים.</li><li>כאשר מריחים ריחות של שריפה של חלק חשמלי.</li><li>כאשר יש שינוי בצבע של מכסה שקע או תקע, או כאשר שקע יצא ממקומו בקיר.</li><li>כאשר יש פגם בחוט חשמל, בכבל חשמל או בחוטי תקשורת.</li><li>כאשר יש כבלי תקשורת על הרצפה או כבלים חשמליים מתוחים ויש סכנה לפציעה.</li><li>כאשר יש פגם בציוד כגון שולחנות, כיסאות או כל פריט ציוד אחר, נייד או נייח, המהווה סכנת פציעה.</li>
     </ul>
-    <div class="section-title"><span class="highlight-red">אסור</span></div><ul class="rules-list"><li>לבצע עבודות שסיכוניהן אינם ברורים.</li><li>להשתמש בפריטים, מכשירים או כלי עבודה חדשים ללא אישור מדריך / מנהל.</li></ul>
+    <div class="section-title section-break-before"><span class="highlight-red">אסור</span></div><ul class="rules-list"><li>לבצע עבודות שסיכוניהן אינם ברורים.</li><li>להשתמש בפריטים, מכשירים או כלי עבודה חדשים ללא אישור מדריך / מנהל.</li></ul>
     <div class="notice-box"><strong>חל איסור מוחלט על עישון בבנייני מרכז / מפעל שיקום.</strong></div>
     <div class="sig-section-title">הצהרת עובד / מקבל שירות חדש</div>
     <div class="confirm-text">אני מצהיר/ה כי קיבלתי מהמנהל / המדריך הסבר ותדרוך לגבי אופי העבודה, סוג החומרים איתם אעבוד, הסיכונים והאמצעים בהם צריך לנקוט. אני מתחייב/ת לשמור על כללי הבטיחות המקובלים במרכז / במפעל / ביחידת המשנה.</div>
@@ -176,7 +176,12 @@ body { font-family: Heebo, Arial, sans-serif; background: var(--bg); color: var(
 
 <script>
 const SIG_COUNT = 2;
-const sigState = Array.from({length: SIG_COUNT}, () => ({ hasSig:false, drawing:false, activePtr:null }));
+// Точки каждого штриха хранятся как есть (могут выходить за пределы холста —
+// WACOM без экрана не даёт человеку видеть границы). После каждого отпускания
+// пера весь рисунок целиком масштабируется (только уменьшение), чтобы поместиться
+// в квадрат подписи, и холст перерисовывается заново.
+const SIG_PADDING_RATIO = 0.08;
+const sigState = Array.from({length: SIG_COUNT}, () => ({ hasSig:false, strokes:[], drawing:false, activePtr:null }));
 
 function formatDateInput(d = new Date()) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -187,7 +192,7 @@ function getCtx(i) {
   return canvas ? canvas.getContext('2d') : null;
 }
 
-function getCanvasPoint(canvas, clientX, clientY) {
+function getRawPoint(canvas, clientX, clientY) {
   const rect = canvas.getBoundingClientRect();
   return {
     x: (clientX - rect.left) * (canvas.width / rect.width),
@@ -195,23 +200,56 @@ function getCanvasPoint(canvas, clientX, clientY) {
   };
 }
 
+function renderSig(i) {
+  const canvas = document.getElementById('sigCanvas' + i);
+  const ctx = getCtx(i);
+  if (!canvas || !ctx) return;
+  const strokes = sigState[i].strokes;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!strokes.length) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  strokes.forEach(stroke => stroke.forEach(p => {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }));
+
+  const padX = canvas.width * SIG_PADDING_RATIO;
+  const padY = canvas.height * SIG_PADDING_RATIO;
+  const availW = canvas.width - 2 * padX;
+  const availH = canvas.height - 2 * padY;
+  const sigW = Math.max(maxX - minX, 1);
+  const sigH = Math.max(maxY - minY, 1);
+  const scale = Math.min(1, availW / sigW, availH / sigH);
+
+  const drawnW = sigW * scale;
+  const drawnH = sigH * scale;
+  const offsetX = (canvas.width - drawnW) / 2 - minX * scale;
+  const offsetY = (canvas.height - drawnH) / 2 - minY * scale;
+
+  ctx.strokeStyle = '#1a3a5c'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  strokes.forEach(stroke => {
+    if (stroke.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(stroke[0].x * scale + offsetX, stroke[0].y * scale + offsetY);
+    for (let k = 1; k < stroke.length; k++) {
+      ctx.lineTo(stroke[k].x * scale + offsetX, stroke[k].y * scale + offsetY);
+    }
+    ctx.stroke();
+  });
+}
+
 function setupCanvas(i) {
   const canvas = document.getElementById('sigCanvas' + i);
   if (!canvas) return;
   const state = sigState[i];
+  let currentStroke = null;
 
   function pointFrom(e) {
-    if (e.touches && e.touches.length) return getCanvasPoint(canvas, e.touches[0].clientX, e.touches[0].clientY);
-    return getCanvasPoint(canvas, e.clientX, e.clientY);
-  }
-
-  function prepStroke() {
-    const ctx = getCtx(i);
-    if (!ctx) return;
-    ctx.strokeStyle = '#1a3a5c';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    if (e.touches && e.touches.length) return getRawPoint(canvas, e.touches[0].clientX, e.touches[0].clientY);
+    return getRawPoint(canvas, e.clientX, e.clientY);
   }
 
   function onDown(e) {
@@ -222,43 +260,36 @@ function setupCanvas(i) {
     if (e.pointerId !== undefined && canvas.setPointerCapture) {
       try { canvas.setPointerCapture(e.pointerId); } catch(_) {}
     }
-    const p = pointFrom(e);
-    prepStroke();
-    const ctx = getCtx(i);
-    if (!ctx) return;
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
+    currentStroke = [pointFrom(e)];
+    state.strokes.push(currentStroke);
   }
 
   function onMove(e) {
-    if (!state.drawing) return;
+    if (!state.drawing || !currentStroke) return;
     if (e.pointerId !== undefined && state.activePtr !== e.pointerId) return;
     if (e.cancelable) e.preventDefault();
-    const p = pointFrom(e);
-    prepStroke();
-    const ctx = getCtx(i);
-    if (!ctx) return;
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
+    currentStroke.push(pointFrom(e));
     state.hasSig = true;
+    renderSig(i);
   }
 
   function onUp(e) {
     if (e && e.pointerId !== undefined && state.activePtr !== e.pointerId) return;
     state.drawing = false;
     state.activePtr = null;
-    const ctx = getCtx(i);
-    if (ctx) ctx.beginPath();
+    currentStroke = null;
     if (e && e.pointerId !== undefined && canvas.releasePointerCapture) {
       try { canvas.releasePointerCapture(e.pointerId); } catch(_) {}
     }
+    renderSig(i);
   }
 
+  // Важно: НЕТ обработчика pointerleave — перо может уйти за пределы холста,
+  // штрих не обрывается (setPointerCapture продолжает доставлять события).
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointermove', onMove);
   canvas.addEventListener('pointerup', onUp);
   canvas.addEventListener('pointercancel', onUp);
-  canvas.addEventListener('pointerleave', onUp);
   window.addEventListener('pointerup', onUp);
 
   if (!window.PointerEvent) {
@@ -274,9 +305,9 @@ function setupCanvas(i) {
 function clearSig(i) {
   const canvas = document.getElementById('sigCanvas' + i);
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  sigState[i].strokes = [];
   sigState[i].hasSig = false;
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
   canvas.removeAttribute('data-saved-signature');
 }
 
@@ -284,15 +315,28 @@ function resizeCanvases() {
   for (let i = 0; i < SIG_COUNT; i++) {
     const canvas = document.getElementById('sigCanvas' + i);
     if (!canvas) continue;
-    const old = document.createElement('canvas');
-    old.width = canvas.width || canvas.offsetWidth || 240;
-    old.height = canvas.height || canvas.offsetHeight || 70;
-    old.getContext('2d').drawImage(canvas, 0, 0);
-    const w = canvas.offsetWidth || 240;
-    const h = canvas.offsetHeight || 70;
-    canvas.width = w;
-    canvas.height = h;
-    canvas.getContext('2d').drawImage(old, 0, 0, w, h);
+    if (sigState[i].strokes.length) {
+      // Векторные точки есть — просто меняем размер и перерисовываем заново (без потери чёткости).
+      const w = canvas.offsetWidth || 240;
+      const h = canvas.offsetHeight || 70;
+      canvas.width = w;
+      canvas.height = h;
+      renderSig(i);
+    } else if (sigState[i].hasSig) {
+      // Подпись восстановлена из сохранённого растрового изображения (нет точек) — старый способ.
+      const old = document.createElement('canvas');
+      old.width = canvas.width || canvas.offsetWidth || 240;
+      old.height = canvas.height || canvas.offsetHeight || 70;
+      old.getContext('2d').drawImage(canvas, 0, 0);
+      const w = canvas.offsetWidth || 240;
+      const h = canvas.offsetHeight || 70;
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(old, 0, 0, w, h);
+    } else {
+      canvas.width = canvas.offsetWidth || 240;
+      canvas.height = canvas.offsetHeight || 70;
+    }
   }
 }
 
@@ -405,6 +449,16 @@ function restoreSavedSignatures() {
     };
     img.src = data;
   }
+}
+
+function savePDF() {
+  const name = document.getElementById('manualName').value.trim();
+  if (!name) { showStatus('יש להזין שם מקבל שירות', 'error'); return; }
+  applyManualLive();
+  const prevTitle = document.title;
+  document.title = safeFileName(name) + '_הדרכת_בטיחות_' + formatDateInput().slice(0,7);
+  window.print();
+  setTimeout(() => { document.title = prevTitle; }, 1000);
 }
 
 async function saveDoc() {

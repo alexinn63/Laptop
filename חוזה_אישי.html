@@ -303,23 +303,24 @@ body {
   html, body { width: auto; height: auto; min-height: 0; margin: 0; padding: 0; background: #ffffff; overflow: visible; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .top-bar, .load-panel, .top-bar-actions, .status-bar, .sig-cell-btn { display: none !important; }
   .page { width: 198mm; max-width: 198mm; margin: 0 auto; padding: 0; border-radius: 0; box-shadow: none; overflow: visible; }
-  .doc-body { padding: 0; margin: 0; min-height: 285mm; display: flex; flex-direction: column; }
-  .doc-header { padding: 0 0 2mm; margin: 0 0 2mm; border-bottom: 1px solid var(--border); display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
-  .doc-header-logos img { height: 12.5mm; max-width: 39mm; }
-  .doc-title h1 { font-size: 15.5pt; line-height: 1.12; }
-  .doc-title p { font-size: 8pt; }
-  .doc-intro { font-size: 10pt; margin-bottom: 3mm; }
-  .rules-list li { font-size: 9.5pt; padding: 3px 18px 3px 0; line-height: 1.5; }
-  .hours-box { font-size: 9.5pt; padding: 2mm 3mm; margin: 1mm 0 2mm; }
-  .confirm-text { font-size: 9.5pt; margin-bottom: 3mm; }
-  .date-row { font-size: 9.5pt; margin-bottom: 3mm; }
-  .date-row input { font-size: 9.5pt; padding: 2mm 3mm; }
-  .sig-section-title { font-size: 14pt; margin-top: 4mm; margin-bottom: 3mm; padding-top: 3mm; border-top: 0.45mm solid var(--primary); }
-  .sig-table th { font-size: 9pt; padding: 2mm 2mm; }
-  .sig-table td { font-size: 9pt; padding: 1mm 2mm; }
-  .sig-cell { height: 22mm; }
-  .sig-cell canvas { height: 22mm; }
-  .validity-note { margin-top: auto; padding-top: 2mm; border-top: 0.45mm solid var(--primary); font-size: 9pt; line-height: 1.3; }
+  .doc-body { padding: 0; margin: 0; min-height: 0; display: flex; flex-direction: column; }
+  .doc-header { padding: 0 0 1.65mm; margin: 0 0 1.65mm; border-bottom: 1px solid var(--border); display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
+  .doc-header-logos img { height: 11.3mm; max-width: 35mm; }
+  .doc-title h1 { font-size: 14.7pt; line-height: 1.1; }
+  .doc-title p { font-size: 7.7pt; }
+  .doc-intro { font-size: 9.1pt; margin-bottom: 1.7mm; line-height: 1.27; }
+  .rules-list li { font-size: 8.6pt; padding: 1.5px 18px 1.5px 0; line-height: 1.7; }
+  .hours-box { font-size: 8.6pt; padding: 1.18mm 2.65mm; margin: 0.66mm 0 1.15mm; }
+  .confirm-text { font-size: 8.8pt; margin-bottom: 1.7mm; line-height: 1.24; }
+  .date-row { font-size: 8.8pt; margin-bottom: 1.7mm; }
+  .date-row input { font-size: 8.8pt; padding: 1.18mm 2.15mm; }
+  .sig-table { margin-top: 3.5mm; break-inside: avoid; page-break-inside: avoid; }
+  .sig-table th { font-size: 8.24pt; padding: 1.24mm 2mm; }
+  .sig-table td { font-size: 8.24pt; padding: 0.88mm 2mm; }
+  .sig-table tr { break-inside: avoid; page-break-inside: avoid; }
+  .sig-cell { height: 18.6mm; }
+  .sig-cell canvas { height: 18.6mm; }
+  .validity-note { margin-top: auto; padding-top: 1.65mm; border-top: 0.45mm solid var(--primary); font-size: 8.24pt; line-height: 1.23; }
   * { page-break-after: auto; break-after: auto; }
   body::after { content: none; display: none; }
 }
@@ -336,7 +337,7 @@ body {
     <button class="btn btn-clear" onclick="clearAll()">✕ נקה</button>
     <button class="btn btn-print" onclick="window.print()">🖨 הדפס</button>
     <button class="btn btn-email" onclick="emailDoc()">✉ שלח במייל</button>
-    <button class="btn btn-save" onclick="saveDoc()">📁 שמור בתיקייה</button>
+    <button class="btn btn-save" onclick="savePDF()">📄 שמור PDF</button>
   </div>
 </div>
 
@@ -424,8 +425,6 @@ body {
       תאריך: <input id="fDate" type="date">
     </div>
 
-    <div class="sig-section-title">חתימות</div>
-
     <table class="sig-table">
       <thead>
         <tr>
@@ -469,17 +468,23 @@ body {
 
 <script>
 // ── SIGNATURE CANVASES ──
+// Точки каждого штриха хранятся как есть (могут выходить за пределы холста —
+// WACOM без экрана не даёт человеку видеть границы). После каждого отпускания
+// пера весь рисунок целиком масштабируется (только уменьшение, не увеличение),
+// чтобы гарантированно поместиться в квадрат подписи, и холст перерисовывается заново.
 const sigState = [
-  { hasSig: false, drawing: false, activePtr: null },
-  { hasSig: false, drawing: false, activePtr: null },
-  { hasSig: false, drawing: false, activePtr: null }
+  { strokes: [], drawing: false, activePtr: null },
+  { strokes: [], drawing: false, activePtr: null },
+  { strokes: [], drawing: false, activePtr: null }
 ];
+
+const SIG_PADDING_RATIO = 0.08; // отступ от края квадрата, доля от меньшей стороны
 
 function getCtx(i) {
   return document.getElementById('sigCanvas' + i).getContext('2d');
 }
 
-function getCanvasPoint(canvas, clientX, clientY) {
+function getRawPoint(canvas, clientX, clientY) {
   const rect = canvas.getBoundingClientRect();
   return {
     x: (clientX - rect.left) * (canvas.width / rect.width),
@@ -487,18 +492,58 @@ function getCanvasPoint(canvas, clientX, clientY) {
   };
 }
 
+// Пересчитывает масштаб по ВСЕМ точкам ВСЕХ штрихов и перерисовывает холст с нуля.
+function renderSig(i) {
+  const canvas = document.getElementById('sigCanvas' + i);
+  const ctx = getCtx(i);
+  const strokes = sigState[i].strokes;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!strokes.length) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  strokes.forEach(stroke => stroke.forEach(p => {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }));
+
+  const padX = canvas.width * SIG_PADDING_RATIO;
+  const padY = canvas.height * SIG_PADDING_RATIO;
+  const availW = canvas.width - 2 * padX;
+  const availH = canvas.height - 2 * padY;
+  const sigW = Math.max(maxX - minX, 1);
+  const sigH = Math.max(maxY - minY, 1);
+
+  // Масштаб только уменьшает — если подпись и так помещается, рисуем как есть (scale=1),
+  // просто центрируя в квадрате, чтобы не увеличивать мелкие/аккуратные подписи.
+  const scale = Math.min(1, availW / sigW, availH / sigH);
+
+  const drawnW = sigW * scale;
+  const drawnH = sigH * scale;
+  const offsetX = (canvas.width - drawnW) / 2 - minX * scale;
+  const offsetY = (canvas.height - drawnH) / 2 - minY * scale;
+
+  ctx.strokeStyle = '#1a3a5c'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  strokes.forEach(stroke => {
+    if (stroke.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(stroke[0].x * scale + offsetX, stroke[0].y * scale + offsetY);
+    for (let k = 1; k < stroke.length; k++) {
+      ctx.lineTo(stroke[k].x * scale + offsetX, stroke[k].y * scale + offsetY);
+    }
+    ctx.stroke();
+  });
+}
+
 function setupCanvas(i) {
   const canvas = document.getElementById('sigCanvas' + i);
   const state = sigState[i];
+  let currentStroke = null;
 
   function pointFrom(e) {
-    if (e.touches && e.touches.length) return getCanvasPoint(canvas, e.touches[0].clientX, e.touches[0].clientY);
-    return getCanvasPoint(canvas, e.clientX, e.clientY);
-  }
-
-  function prepStroke() {
-    const ctx = getCtx(i);
-    ctx.strokeStyle = '#1a3a5c'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (e.touches && e.touches.length) return getRawPoint(canvas, e.touches[0].clientX, e.touches[0].clientY);
+    return getRawPoint(canvas, e.clientX, e.clientY);
   }
 
   function onDown(e) {
@@ -507,26 +552,29 @@ function setupCanvas(i) {
     state.drawing = true;
     state.activePtr = e.pointerId !== undefined ? e.pointerId : 'legacy';
     if (e.pointerId !== undefined && canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch(_) {} }
-    const p = pointFrom(e); prepStroke(); getCtx(i).beginPath(); getCtx(i).moveTo(p.x, p.y);
+    currentStroke = [pointFrom(e)];
+    state.strokes.push(currentStroke);
   }
   function onMove(e) {
-    if (!state.drawing) return;
+    if (!state.drawing || !currentStroke) return;
     if (e.pointerId !== undefined && state.activePtr !== e.pointerId) return;
     if (e.cancelable) e.preventDefault();
-    const p = pointFrom(e); prepStroke(); getCtx(i).lineTo(p.x, p.y); getCtx(i).stroke();
-    state.hasSig = true;
+    currentStroke.push(pointFrom(e));
+    renderSig(i);
   }
   function onUp(e) {
     if (e && e.pointerId !== undefined && state.activePtr !== e.pointerId) return;
-    state.drawing = false; state.activePtr = null; getCtx(i).beginPath();
+    state.drawing = false; state.activePtr = null; currentStroke = null;
     if (e && e.pointerId !== undefined && canvas.releasePointerCapture) { try { canvas.releasePointerCapture(e.pointerId); } catch(_) {} }
+    renderSig(i);
   }
 
+  // Важно: НЕТ обработчика pointerleave/mouseleave — перо может уйти за пределы
+  // холста, штрих не обрывается (setPointerCapture продолжает доставлять события).
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointermove', onMove);
   canvas.addEventListener('pointerup', onUp);
   canvas.addEventListener('pointercancel', onUp);
-  canvas.addEventListener('pointerleave', onUp);
   window.addEventListener('pointerup', onUp);
 
   if (!window.PointerEvent) {
@@ -540,23 +588,18 @@ function setupCanvas(i) {
 }
 
 function clearSig(i) {
-  const canvas = document.getElementById('sigCanvas' + i);
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  sigState[i].hasSig = false;
+  sigState[i].strokes = [];
+  renderSig(i);
 }
 
 function resizeCanvases() {
   [0,1,2].forEach(i => {
     const canvas = document.getElementById('sigCanvas' + i);
     if (!canvas) return;
-    const old = document.createElement('canvas');
-    old.width = canvas.width; old.height = canvas.height;
-    old.getContext('2d').drawImage(canvas, 0, 0);
     const w = canvas.offsetWidth || 200;
     const h = canvas.offsetHeight || 70;
     canvas.width = w; canvas.height = h;
-    canvas.getContext('2d').drawImage(old, 0, 0, w, h);
+    renderSig(i);
   });
 }
 
@@ -600,12 +643,22 @@ function getDateText() {
   return new Date(v + 'T12:00:00').toLocaleDateString('he-IL');
 }
 
+function savePDF() {
+  const name = document.getElementById('manualName').value.trim();
+  if (!name) { showStatus('יש להזין שם מקבל שירות', 'error'); return; }
+  applyManualLive();
+  const prevTitle = document.title;
+  document.title = safeFileName(name) + '_חוזה_אישי_' + formatDateInput().slice(0,7);
+  window.print();
+  setTimeout(() => { document.title = prevTitle; }, 1000);
+}
+
 async function saveDoc() {
   const name = document.getElementById('manualName').value.trim();
   if (!name) { showStatus('יש להזין שם מקבל שירות', 'error'); return; }
-  const sig0 = sigState[0].hasSig ? document.getElementById('sigCanvas0').toDataURL('image/png') : '';
-  const sig1 = sigState[1].hasSig ? document.getElementById('sigCanvas1').toDataURL('image/png') : '';
-  const sig2 = sigState[2].hasSig ? document.getElementById('sigCanvas2').toDataURL('image/png') : '';
+  const sig0 = sigState[0].strokes.length ? document.getElementById('sigCanvas0').toDataURL('image/png') : '';
+  const sig1 = sigState[1].strokes.length ? document.getElementById('sigCanvas1').toDataURL('image/png') : '';
+  const sig2 = sigState[2].strokes.length ? document.getElementById('sigCanvas2').toDataURL('image/png') : '';
   const tz = document.getElementById('manualTZ').value.trim();
   const dateText = getDateText();
 
@@ -680,9 +733,9 @@ function buildSaveHTML(name, tz, dateText, sig0, sig1, sig2) {
 async function emailDoc() {
   const name = document.getElementById('manualName').value.trim();
   if (!name) { showStatus('יש להזין שם מקבל שירות', 'error'); return; }
-  const sig0 = sigState[0].hasSig ? document.getElementById('sigCanvas0').toDataURL('image/png') : '';
-  const sig1 = sigState[1].hasSig ? document.getElementById('sigCanvas1').toDataURL('image/png') : '';
-  const sig2 = sigState[2].hasSig ? document.getElementById('sigCanvas2').toDataURL('image/png') : '';
+  const sig0 = sigState[0].strokes.length ? document.getElementById('sigCanvas0').toDataURL('image/png') : '';
+  const sig1 = sigState[1].strokes.length ? document.getElementById('sigCanvas1').toDataURL('image/png') : '';
+  const sig2 = sigState[2].strokes.length ? document.getElementById('sigCanvas2').toDataURL('image/png') : '';
   const tz = document.getElementById('manualTZ').value.trim();
   const dateText = getDateText();
   const html = buildSaveHTML(name, tz, dateText, sig0, sig1, sig2);

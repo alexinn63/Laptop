@@ -1368,21 +1368,19 @@ async function saveAsHtml() {
         if (!canvas) return;
         var ctx     = canvas.getContext('2d');
         var drawing = false;
-        var lastX   = 0, lastY = 0;
         var inkColor = '#1a1aee'; // default blue
-
-        function setupCtx() {
-            ctx.strokeStyle = inkColor;
-            ctx.fillStyle   = inkColor;
-            ctx.lineWidth   = 1.8;
-            ctx.lineCap     = 'round';
-            ctx.lineJoin    = 'round';
-        }
-        setupCtx();
+        // Точки штриха хранятся как есть (без обрезки по границам холста —
+        // WACOM без экрана не даёт видеть границы). После каждого отпускания
+        // пера весь рисунок пересчитывается и масштабируется (только уменьшение),
+        // чтобы поместиться в квадрат подписи.
+        var SIG_PADDING_RATIO = 0.08;
+        var sigStrokes = [];
+        var currentStroke = null;
+        var restoredImage = null; // используется, если подпись восстановлена из сохранённого файла (нет точек)
 
         window.updateSignatureColor = function() {
             inkColor = document.getElementById('signatureColor').value;
-            setupCtx();
+            renderSig();
         };
 
         function getPos(e) {
@@ -1395,39 +1393,84 @@ async function saveAsHtml() {
             };
         }
 
+        function renderSig() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (restoredImage) { ctx.drawImage(restoredImage, 0, 0, canvas.width, canvas.height); return; }
+            if (!sigStrokes.length) return;
+
+            var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            sigStrokes.forEach(function(stroke) {
+                stroke.forEach(function(p) {
+                    if (p.x < minX) minX = p.x;
+                    if (p.y < minY) minY = p.y;
+                    if (p.x > maxX) maxX = p.x;
+                    if (p.y > maxY) maxY = p.y;
+                });
+            });
+
+            var padX = canvas.width * SIG_PADDING_RATIO;
+            var padY = canvas.height * SIG_PADDING_RATIO;
+            var availW = canvas.width - 2 * padX;
+            var availH = canvas.height - 2 * padY;
+            var sigW = Math.max(maxX - minX, 1);
+            var sigH = Math.max(maxY - minY, 1);
+            var scale = Math.min(1, availW / sigW, availH / sigH);
+
+            var drawnW = sigW * scale;
+            var drawnH = sigH * scale;
+            var offsetX = (canvas.width - drawnW) / 2 - minX * scale;
+            var offsetY = (canvas.height - drawnH) / 2 - minY * scale;
+
+            ctx.strokeStyle = inkColor; ctx.fillStyle = inkColor; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            sigStrokes.forEach(function(stroke) {
+                if (stroke.length < 2) {
+                    if (stroke.length === 1) {
+                        var p = stroke[0];
+                        ctx.beginPath();
+                        ctx.arc(p.x * scale + offsetX, p.y * scale + offsetY, ctx.lineWidth / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    return;
+                }
+                ctx.beginPath();
+                ctx.moveTo(stroke[0].x * scale + offsetX, stroke[0].y * scale + offsetY);
+                for (var k = 1; k < stroke.length; k++) {
+                    ctx.lineTo(stroke[k].x * scale + offsetX, stroke[k].y * scale + offsetY);
+                }
+                ctx.stroke();
+            });
+        }
+
         // pointerdown — start stroke, capture pointer so WACOM doesn't lose focus
         canvas.addEventListener('pointerdown', function(e) {
             e.preventDefault();
             canvas.setPointerCapture(e.pointerId);
             drawing = true;
-            var pos = getPos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            // draw a dot for tap/click
-            ctx.beginPath();
-            ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
-            ctx.fill();
+            restoredImage = null;
+            currentStroke = [getPos(e)];
+            sigStrokes.push(currentStroke);
+            renderSig();
             formIsDirty = true;
         });
 
-        // pointermove — draw line from last point
+        // pointermove — точка добавляется в текущий штрих, весь рисунок перерисовывается с пересчётом масштаба
         canvas.addEventListener('pointermove', function(e) {
-            if (!drawing) return;
+            if (!drawing || !currentStroke) return;
             e.preventDefault();
-            var pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            lastX = pos.x;
-            lastY = pos.y;
+            currentStroke.push(getPos(e));
+            renderSig();
         });
 
-        canvas.addEventListener('pointerup',     function(e) { drawing = false; });
-        canvas.addEventListener('pointercancel', function(e) { drawing = false; });
+        // Важно: НЕТ обработчика pointerleave — перо может уйти за пределы холста,
+        // штрих не обрывается (setPointerCapture продолжает доставлять события).
+        canvas.addEventListener('pointerup',     function(e) { drawing = false; currentStroke = null; renderSig(); });
+        canvas.addEventListener('pointercancel', function(e) { drawing = false; currentStroke = null; renderSig(); });
 
         // clear button
         window.clearSignatureCanvas = function() {
+            sigStrokes = [];
+            currentStroke = null;
+            restoredImage = null;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         };
 
@@ -1447,8 +1490,8 @@ async function saveAsHtml() {
                 window._pendingSignatureImage = data.signatureImage;
                 var img = new Image();
                 img.onload = function() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
+                    restoredImage = img;
+                    renderSig();
                 };
                 img.src = data.signatureImage;
             }
@@ -1459,8 +1502,8 @@ async function saveAsHtml() {
             if (stored && stored !== 'data:,') {
                 var img = new Image();
                 img.onload = function() {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
+                    restoredImage = img;
+                    renderSig();
                 };
                 img.src = stored;
                 window._pendingSignatureImage = null;

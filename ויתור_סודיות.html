@@ -192,9 +192,58 @@ body {
 /* PRINT */
 @media print {
   .top-bar, .load-panel, .sig-actions, .top-bar-actions { display: none !important; }
-  .page { box-shadow: none; margin: 0; border-radius: 0; }
+  .page { box-shadow: none !important; margin: 0 auto !important; border-radius: 0 !important; width: 198mm !important; max-width: 198mm !important; overflow: visible !important; padding: 0 !important; page-break-after: auto !important; break-after: auto !important; }
   body { background: white; }
+  html, body { width: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #ffffff !important; overflow: visible !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; height: auto !important; }
+  .top-bar, .load-panel, .sig-actions, .top-bar-actions, .status-bar { display: none !important; }
+  .doc-body { padding: 0 !important; margin: 0 !important; width: 100% !important; min-height: 285mm !important; display: flex !important; flex-direction: column !important; }
+  .doc-header { padding: 0 0 2mm !important; margin: 0 0 2.2mm !important; border-bottom: 1px solid #b8d0ee !important; display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 8mm !important; background: #ffffff !important; }
+  .doc-header-logos img { height: 14mm !important; max-width: 28mm !important; }
+  .doc-title h1 { font-size: 15.5pt !important; line-height: 1.12 !important; margin: 0 !important; }
+  .doc-title p { font-size: 8pt !important; margin: 0 !important; }
+  .doc-body h2 { font-size: 10.5pt !important; margin: 1.6mm 0 1mm !important; padding-bottom: 0.6mm !important; }
+  .doc-text { font-size: 10pt !important; line-height: 1.65 !important; padding: 1.8mm 3mm !important; margin-bottom: 2mm !important; border-right-width: 1.5mm !important; border-radius: 1.5mm !important; }
+  .fields-grid { grid-template-columns: 1fr 1fr 1fr !important; gap: 2mm !important; margin-bottom: 2mm !important; width: 100% !important; }
+  .field-group { gap: 0.6mm !important; }
+  .field-group label { font-size: 8.4pt !important; }
+  .field-group .field-val { min-height: 7mm !important; padding: 0.8mm 2.2mm !important; font-size: 9.4pt !important; border-radius: 1mm !important; }
+  .sig-section { margin-top: 0 !important; border-radius: 1.2mm !important; page-break-inside: avoid !important; break-inside: avoid !important; border: 0.35mm solid #1a3a5c !important; background: #ffffff !important; min-height: 34mm !important; overflow: visible !important; margin-bottom: 0 !important; }
+  .sig-header { padding: 2mm 0 1.5mm !important; display: none !important; justify-content: center !important; align-items: center !important; background: #ffffff !important; visibility: visible !important; }
+  .sig-header span { font-size: 15pt !important; font-weight: 800 !important; color: #1a3a5c !important; display: block !important; visibility: visible !important; opacity: 1 !important; line-height: 1.2 !important; text-align: center !important; }
+  .sig-canvas { height: 34mm !important; min-height: 34mm !important; }
+  .date-signed { padding: 1.5mm 2.5mm !important; font-size: 8.5pt !important; }
+  .top-bar, .load-panel, .sig-actions, .top-bar-actions, .status-bar, .manual-panel { display: none !important; }
+  * { page-break-after: auto !important; break-after: auto !important; }
+  body::after { content: none !important; display: none !important; }
+  .edit-hint { display: none !important; }
+  .field-val[contenteditable="true"] { outline: none !important; }
+  .sig-status-line { display: none !important; }
+  .doc-header-logos { gap: 8mm !important; }
+  .doc-header-logos img,
+  .doc-header-logos .logo-health,
+  .doc-header-logos .logo-yachdav { height: 12.5mm !important; max-width: 39mm !important; background: transparent !important; filter: none !important; }
+  @page { size: A4 portrait; margin: 6mm; }
+  .date-signed,
+  .sig-status-line { display: none !important; }
+  .top-bar, .load-panel, .sig-actions, .top-bar-actions, .status-bar, .manual-panel, .edit-hint { display: none !important; }
+  .official-text-block,
+  .doc-text.official-text-block { width: 100% !important; max-width: none !important; min-height: 54mm !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; background: #ffffff !important; border: 0.25mm solid #cfd8e3 !important; border-right: 0.25mm solid #cfd8e3 !important; border-radius: 0 !important; padding: 3.2mm 5.5mm !important; margin: 0 0 2mm 0 !important; box-sizing: border-box !important; font-size: 10.2pt !important; line-height: 1.6 !important; text-align: justify !important; text-align-last: auto !important; text-justify: inter-word !important; word-spacing: 0.15mm !important; margin-bottom: 0 !important; }
+  .official-text-block p { margin: 0 0 2.4mm 0 !important; padding: 0 !important; }
+  .official-text-block p:last-child { margin-bottom: 0 !important; }
+  .manual-panel { display: none !important; }
+  .fields-grid.fields-grid-3 { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8mm !important; margin-top: 26mm !important; margin-bottom: 0 !important; padding-top: 3.5mm !important; border-top: none !important; }
+  .fields-grid.fields-grid-3 .field-group { gap: 2mm !important; }
+  .fields-grid.fields-grid-3 label { text-align: center !important; font-size: 9pt !important; font-weight: 700 !important; color: #1a3a5c !important; }
+  .fields-grid.fields-grid-3 .field-val { min-height: 8mm !important; padding: 0.5mm 1mm !important; border: 0 !important; border-bottom: 0.45mm solid #1a3a5c !important; border-radius: 0 !important; background: transparent !important; text-align: center !important; font-size: 9.5pt !important; }
+  .sig-section::before { content: none !important; display: none !important; border-top: 0.45mm solid #1a3a5c !important; margin: -12mm 0 8mm 0 !important; }
+  .sig-wrap { min-height: 34mm !important; position: relative !important; }
+  .sig-placeholder { font-size: 10pt !important; }
+  .validity-note { display: block !important; margin-top: auto !important; padding-top: 2mm !important; border-top: 0.45mm solid #1a3a5c !important; font-size: 9.2pt !important; line-height: 1.3 !important; text-align: center !important; font-weight: 600 !important; color: #1e2535 !important; page-break-inside: avoid !important; break-inside: avoid !important; padding-bottom: 0 !important; }
+  .signature-title-print { display: block !important; margin-top: 26mm !important; margin-bottom: 2.5mm !important; font-size: 17pt !important; color: #1a3a5c !important; font-weight: 800 !important; text-align: center !important; line-height: 1.15 !important; }
+  #nameSuggestions { display: none !important; }
 }
+
+
 
 @media (max-width: 600px) {
   .select-row { grid-template-columns: 1fr; }
@@ -276,65 +325,7 @@ img, canvas, select, input, button { max-width: 100%; }
 }
 
 @page { size: A4 portrait; margin: 8mm; }
-@media print {
-  html, body {
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0;
-    padding: 0;
-    background: #ffffff !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .top-bar, .load-panel, .sig-actions, .top-bar-actions, .status-bar { display: none !important; }
-  .page {
-    width: 194mm !important;
-    max-width: 194mm !important;
-    margin: 0 auto !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-  }
-  .doc-body { padding: 0 !important; }
-  .doc-header {
-    padding: 0 0 4mm !important;
-    margin: 0 0 4mm !important;
-    border-bottom: 1px solid #b8d0ee !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 6mm !important;
-    background: #ffffff !important;
-  }
-  .doc-header-logos img { height: 16mm !important; max-width: 30mm !important; }
-  .doc-title h1 { font-size: 17pt !important; line-height: 1.15 !important; margin: 0 0 1mm !important; }
-  .doc-title p { font-size: 9pt !important; margin: 0 !important; }
-  .doc-body h2 { font-size: 11.5pt !important; margin: 3mm 0 2mm !important; padding-bottom: 1mm !important; }
-  .doc-text {
-    font-size: 10.5pt !important;
-    line-height: 1.36 !important;
-    padding: 3mm 4mm !important;
-    margin-bottom: 4mm !important;
-    border-right-width: 2mm !important;
-    border-radius: 2mm !important;
-  }
-  .fields-grid { grid-template-columns: 1fr 1fr !important; gap: 3mm !important; margin-bottom: 4mm !important; }
-  .field-group { gap: 1mm !important; }
-  .field-group label { font-size: 9pt !important; }
-  .field-group .field-val {
-    min-height: 9mm !important;
-    padding: 1.5mm 3mm !important;
-    font-size: 10.5pt !important;
-    border-radius: 1.5mm !important;
-  }
-  .sig-section { margin-top: 4mm !important; border-radius: 2mm !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-  .sig-header { padding: 2mm 3mm !important; }
-  .sig-header span { font-size: 10pt !important; }
-  .sig-canvas { height: 28mm !important; }
-  .date-signed { padding: 2mm 3mm !important; font-size: 9pt !important; }
-}
+
 
 
 /* V2 CONTROLS */
@@ -363,51 +354,7 @@ img, canvas, select, input, button { max-width: 100%; }
 
 /* V2 PRINT: prevent blank second page */
 @page { size:A4 portrait; margin:6mm; }
-@media print {
-  html, body {
-    width:auto !important;
-    height:auto !important;
-    min-height:0 !important;
-    margin:0 !important;
-    padding:0 !important;
-    background:#fff !important;
-    overflow:visible !important;
-  }
-  .top-bar, .load-panel, .sig-actions, .top-bar-actions, .status-bar, .manual-panel { display:none !important; }
-  .page {
-    width:198mm !important;
-    max-width:198mm !important;
-    margin:0 auto !important;
-    padding:0 !important;
-    border-radius:0 !important;
-    box-shadow:none !important;
-    overflow:visible !important;
-  }
-  .doc-body { padding:0 !important; margin:0 !important; }
-  .doc-header { padding:0 0 3mm !important; margin:0 0 3mm !important; }
-  .doc-header-logos img { height:14mm !important; max-width:28mm !important; }
-  .doc-title h1 { font-size:16pt !important; line-height:1.12 !important; margin:0 !important; }
-  .doc-title p { font-size:8.5pt !important; margin:0 !important; }
-  .doc-body h2 { font-size:11pt !important; margin:2.5mm 0 1.5mm !important; padding-bottom:1mm !important; }
-  .doc-text {
-    font-size:10pt !important;
-    line-height:1.30 !important;
-    padding:2.5mm 3.5mm !important;
-    margin-bottom:3mm !important;
-    border-right-width:1.5mm !important;
-    border-radius:1.5mm !important;
-  }
-  .fields-grid { gap:2.5mm !important; margin-bottom:3mm !important; }
-  .field-group label { font-size:8.7pt !important; }
-  .field-group .field-val { min-height:8mm !important; padding:1mm 2.5mm !important; font-size:10pt !important; }
-  .sig-section { margin-top:3mm !important; border-radius:1.5mm !important; page-break-inside:avoid !important; break-inside:avoid !important; }
-  .sig-header { padding:1.5mm 2.5mm !important; }
-  .sig-header span { font-size:9.5pt !important; }
-  .sig-canvas { height:24mm !important; }
-  .date-signed { padding:1.5mm 2.5mm !important; font-size:8.5pt !important; }
-  * { page-break-after:auto !important; break-after:auto !important; }
-  body::after { content:none !important; }
-}
+
 
 /* DIRECT MANUAL EDIT FIX */
 .manual-panel { display:block !important; }
@@ -425,14 +372,14 @@ img, canvas, select, input, button { max-width: 100%; }
   color:var(--muted);
   margin:-8px 0 12px;
 }
-@media print { .edit-hint { display:none !important; } .field-val[contenteditable="true"] { outline:none !important; } }
+
 
 
 .doc-header, .doc-header-logos, .doc-header-logos img { background: transparent !important; }
 .doc-header-logos img { filter: none !important; mix-blend-mode: normal !important; }
 .field-input-date { appearance: auto; -webkit-appearance: auto; }
 @media (max-width:600px){ .manual-grid-3, .fields-grid-3 { grid-template-columns:1fr; } }
-@media print { html, body { height:auto !important; min-height:0 !important; } .page { page-break-after:auto !important; break-after:auto !important; } .sig-status-line { display:none !important; } }
+
 
 
 /* LOGO FINAL FIX - transparent PNG logos */
@@ -468,131 +415,12 @@ img, canvas, select, input, button { max-width: 100%; }
     max-width: 92px !important;
   }
 }
-@media print {
-  .doc-header-logos { gap: 8mm !important; }
-  .doc-header-logos img,
-  .doc-header-logos .logo-health,
-  .doc-header-logos .logo-yachdav {
-    height: 14mm !important;
-    max-width: 42mm !important;
-    background: transparent !important;
-    filter: none !important;
-  }
-}
+
 
 
 
 /* V4 PRINT READABILITY FIX - wider line spacing only for print */
-@media print {
-  @page { size: A4 portrait; margin: 6mm; }
 
-  html, body {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-  }
-
-  .page {
-    width: 198mm !important;
-    max-width: 198mm !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-    page-break-after: auto !important;
-    break-after: auto !important;
-  }
-
-  .doc-body {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .doc-header {
-    padding: 0 0 2.2mm !important;
-    margin: 0 0 2.2mm !important;
-  }
-
-  .doc-header-logos img,
-  .doc-header-logos .logo-health,
-  .doc-header-logos .logo-yachdav {
-    height: 12.5mm !important;
-    max-width: 39mm !important;
-  }
-
-  .doc-title h1 {
-    font-size: 15.5pt !important;
-    line-height: 1.12 !important;
-    margin: 0 !important;
-  }
-
-  .doc-title p {
-    font-size: 8pt !important;
-    margin: 0 !important;
-  }
-
-  .doc-body h2 {
-    font-size: 10.5pt !important;
-    margin: 1.8mm 0 1mm !important;
-    padding-bottom: 0.7mm !important;
-  }
-
-  .doc-text {
-    font-size: 10pt !important;
-    line-height: 1.65 !important;
-    padding: 1.8mm 3mm !important;
-    margin-bottom: 2mm !important;
-    border-right-width: 1.5mm !important;
-    border-radius: 1.5mm !important;
-  }
-
-  .fields-grid {
-    gap: 2mm !important;
-    margin-bottom: 2mm !important;
-  }
-
-  .field-group label {
-    font-size: 8.5pt !important;
-  }
-
-  .field-group .field-val {
-    min-height: 7.2mm !important;
-    padding: 0.8mm 2.3mm !important;
-    font-size: 9.5pt !important;
-  }
-
-  .sig-section {
-    margin-top: 2mm !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  .sig-header {
-    padding: 1.2mm 2.5mm !important;
-  }
-
-  .sig-header span {
-    font-size: 9.2pt !important;
-  }
-
-  .sig-canvas {
-    height: 20mm !important;
-  }
-
-  .date-signed,
-  .sig-status-line {
-    display: none !important;
-  }
-
-  * {
-    page-break-after: auto !important;
-    break-after: auto !important;
-  }
-
-  body::after {
-    content: none !important;
-    display: none !important;
-  }
-}
 
 
 
@@ -618,120 +446,7 @@ img, canvas, select, input, button { max-width: 100%; }
 }
 .official-text-block p:last-child { margin-bottom: 0 !important; }
 
-@media print {
-  @page { size: A4 portrait; margin: 6mm; }
-  html, body {
-    width: auto !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  .top-bar, .load-panel, .sig-actions, .top-bar-actions, .status-bar, .manual-panel, .edit-hint { display: none !important; }
-  .page {
-    width: 198mm !important;
-    max-width: 198mm !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-    page-break-after: auto !important;
-    break-after: auto !important;
-  }
-  .doc-body {
-    width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  .doc-header {
-    padding: 0 0 2mm !important;
-    margin: 0 0 2.2mm !important;
-    border-bottom: 1px solid #b8d0ee !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 8mm !important;
-    background: #ffffff !important;
-  }
-  .doc-header-logos img,
-  .doc-header-logos .logo-health,
-  .doc-header-logos .logo-yachdav {
-    height: 12.5mm !important;
-    max-width: 39mm !important;
-    background: transparent !important;
-    filter: none !important;
-  }
-  .doc-title h1 {
-    font-size: 15.5pt !important;
-    line-height: 1.12 !important;
-    margin: 0 !important;
-  }
-  .doc-title p { font-size: 8pt !important; margin: 0 !important; }
-  .doc-body h2 {
-    font-size: 10.5pt !important;
-    margin: 1.6mm 0 1mm !important;
-    padding-bottom: 0.6mm !important;
-  }
-  .official-text-block,
-  .doc-text.official-text-block {
-    width: 100% !important;
-    max-width: none !important;
-    min-height: 82mm !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    background: #ffffff !important;
-    border: 0.25mm solid #cfd8e3 !important;
-    border-right: 0.25mm solid #cfd8e3 !important;
-    border-radius: 0 !important;
-    padding: 4.5mm 6mm !important;
-    margin: 0 0 2mm 0 !important;
-    box-sizing: border-box !important;
-    font-size: 10.2pt !important;
-    line-height: 1.68 !important;
-    text-align: justify !important;
-    text-align-last: auto !important;
-    text-justify: inter-word !important;
-    word-spacing: 0.15mm !important;
-  }
-  .official-text-block p {
-    margin: 0 0 2.4mm 0 !important;
-    padding: 0 !important;
-  }
-  .official-text-block p:last-child { margin-bottom: 0 !important; }
-  .fields-grid {
-    width: 100% !important;
-    grid-template-columns: 1fr 1fr 1fr !important;
-    gap: 2mm !important;
-    margin-bottom: 2mm !important;
-  }
-  .field-group { gap: 0.6mm !important; }
-  .field-group label { font-size: 8.4pt !important; }
-  .field-group .field-val {
-    min-height: 7mm !important;
-    padding: 0.8mm 2.2mm !important;
-    font-size: 9.4pt !important;
-    border-radius: 1mm !important;
-  }
-  .sig-section {
-    margin-top: 1.8mm !important;
-    border-radius: 1mm !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-  .sig-header { padding: 1.1mm 2.3mm !important; }
-  .sig-header span { font-size: 9pt !important; }
-  .sig-canvas { height: 19mm !important; }
-  .date-signed, .sig-status-line { display: none !important; }
-  * { page-break-after: auto !important; break-after: auto !important; }
-  body::after { content: none !important; display: none !important; }
-}
+
 
 
 
@@ -806,71 +521,7 @@ img, canvas, select, input, button { max-width: 100%; }
     padding: 6px 4px !important;
   }
 }
-@media print {
-  .manual-panel { display: none !important; }
-  .official-text-block,
-  .doc-text.official-text-block {
-    min-height: 70mm !important;
-    margin-bottom: 0 !important;
-  }
-  .fields-grid.fields-grid-3 {
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 8mm !important;
-    margin-top: 18mm !important;
-    margin-bottom: 0 !important;
-    padding-top: 4mm !important;
-    border-top: 0.45mm solid #1a3a5c !important;
-  }
-  .fields-grid.fields-grid-3 .field-group {
-    gap: 2mm !important;
-  }
-  .fields-grid.fields-grid-3 label {
-    text-align: center !important;
-    font-size: 9pt !important;
-    font-weight: 700 !important;
-    color: #1a3a5c !important;
-  }
-  .fields-grid.fields-grid-3 .field-val {
-    min-height: 8mm !important;
-    padding: 0.5mm 1mm !important;
-    border: 0 !important;
-    border-bottom: 0.45mm solid #1a3a5c !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    text-align: center !important;
-    font-size: 9.5pt !important;
-  }
-  .sig-section {
-    margin-top: 30mm !important;
-    border: 0.25mm solid #9aa7b8 !important;
-    border-radius: 0 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    background: #ffffff !important;
-  }
-  .sig-section::before {
-    content: "";
-    display: block;
-    border-top: 0.45mm solid #1a3a5c !important;
-    margin: -16mm 0 12mm 0 !important;
-  }
-  .sig-header {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 1mm 0 0.5mm !important;
-    background: transparent !important;
-  }
-  .sig-header span {
-    font-size: 10pt !important;
-    font-weight: 800 !important;
-    color: #1a3a5c !important;
-  }
-  .sig-canvas {
-    height: 18mm !important;
-  }
-}
+
 
 
 
@@ -892,70 +543,7 @@ img, canvas, select, input, button { max-width: 100%; }
 .sig-section {
   overflow: visible !important;
 }
-@media print {
-  .official-text-block,
-  .doc-text.official-text-block {
-    min-height: 63mm !important;
-    line-height: 1.58 !important;
-    padding: 3.2mm 5.5mm !important;
-  }
-  .fields-grid.fields-grid-3 {
-    margin-top: 13mm !important;
-    padding-top: 3mm !important;
-  }
-  .sig-section {
-    margin-top: 22mm !important;
-    min-height: 35mm !important;
-    border: 0.35mm solid #1a3a5c !important;
-    overflow: visible !important;
-  }
-  .sig-section::before {
-    margin: -12mm 0 8mm 0 !important;
-    border-top: 0.45mm solid #1a3a5c !important;
-  }
-  .sig-header {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 2mm 0 1.5mm !important;
-    background: #ffffff !important;
-    visibility: visible !important;
-  }
-  .sig-header span {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    font-size: 15pt !important;
-    font-weight: 800 !important;
-    color: #1a3a5c !important;
-    line-height: 1.2 !important;
-    text-align: center !important;
-  }
-  .sig-wrap {
-    min-height: 25mm !important;
-    position: relative !important;
-  }
-  .sig-canvas {
-    height: 25mm !important;
-    min-height: 25mm !important;
-  }
-  .sig-placeholder {
-    font-size: 10pt !important;
-  }
-  .validity-note {
-    display: block !important;
-    margin-top: 4mm !important;
-    padding-top: 2.2mm !important;
-    border-top: 0.45mm solid #1a3a5c !important;
-    font-size: 9pt !important;
-    line-height: 1.35 !important;
-    text-align: center !important;
-    font-weight: 600 !important;
-    color: #1e2535 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-}
+
 
 
 
@@ -983,53 +571,7 @@ img, canvas, select, input, button { max-width: 100%; }
   font-weight: 600 !important;
 }
 #personSelect { display: none !important; }
-@media print {
-  .signature-title-print {
-    display: block !important;
-    margin-top: 17mm !important;
-    margin-bottom: 2mm !important;
-    font-size: 16pt !important;
-    color: #1a3a5c !important;
-    font-weight: 800 !important;
-    text-align: center !important;
-    line-height: 1.15 !important;
-  }
-  .sig-section {
-    margin-top: 0 !important;
-    min-height: 31mm !important;
-    border: 0.35mm solid #1a3a5c !important;
-    border-radius: 1.2mm !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-  .sig-section::before { display: none !important; content: none !important; }
-  .sig-header { display: none !important; }
-  .sig-wrap { min-height: 31mm !important; }
-  .sig-canvas { height: 31mm !important; min-height: 31mm !important; }
-  .validity-note {
-    display: block !important;
-    margin-top: 4mm !important;
-    padding-top: 0 !important;
-    border-top: none !important;
-    font-size: 9.5pt !important;
-    line-height: 1.35 !important;
-    text-align: center !important;
-    font-weight: 600 !important;
-    color: #1e2535 !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-  .official-text-block,
-  .doc-text.official-text-block {
-    min-height: 58mm !important;
-    line-height: 1.53 !important;
-    padding: 3mm 5mm !important;
-  }
-  .fields-grid.fields-grid-3 {
-    margin-top: 10mm !important;
-    padding-top: 2.5mm !important;
-  }
-}
+
 
 
 
@@ -1074,68 +616,12 @@ img, canvas, select, input, button { max-width: 100%; }
   background: #e8f1fb !important;
   color: #1a3a5c !important;
 }
-@media print {
-  #nameSuggestions { display: none !important; }
-  .doc-body {
-    min-height: 285mm !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  .official-text-block,
-  .doc-text.official-text-block {
-    min-height: 52mm !important;
-    line-height: 1.44 !important;
-    padding: 2.3mm 5mm !important;
-  }
-  .fields-grid.fields-grid-3 {
-    margin-top: 26mm !important;
-    padding-top: 3.5mm !important;
-  }
-  .signature-title-print {
-    margin-top: 12mm !important;
-    margin-bottom: 2mm !important;
-  }
-  .sig-section {
-    margin-top: 0 !important;
-    min-height: 29mm !important;
-  }
-  .sig-wrap { min-height: 28mm !important; }
-  .sig-canvas { height: 28mm !important; min-height: 28mm !important; }
-  .validity-note {
-    margin-top: auto !important;
-    padding-top: 0 !important;
-    border-top: none !important;
-    font-size: 9.2pt !important;
-    line-height: 1.3 !important;
-    text-align: center !important;
-    font-weight: 600 !important;
-    color: #1e2535 !important;
-  }
-}
+
 
 
 
 /* V12 FINAL PRINT POSITION FIX */
-@media print {
-  .signature-title-print {
-    margin-top: 24mm !important;
-    margin-bottom: 2.5mm !important;
-    font-size: 17pt !important;
-  }
-  .sig-section {
-    min-height: 33mm !important;
-  }
-  .sig-wrap {
-    min-height: 33mm !important;
-  }
-  .sig-canvas {
-    height: 33mm !important;
-    min-height: 33mm !important;
-  }
-  .validity-note {
-    margin-top: 12mm !important;
-  }
-}
+
 
 
 /* V13 FINAL FIX - footer bottom in both normal print and print-all + reliable pen lift */
@@ -1156,36 +642,10 @@ img, canvas, select, input, button { max-width: 100%; }
     border-top: 2px solid #1a3a5c !important;
   }
 }
-@media print {
-  .doc-body {
-    min-height: 285mm !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  .signature-title-print {
-    margin-top: 26mm !important;
-    margin-bottom: 2.5mm !important;
-  }
-  .sig-section {
-    min-height: 34mm !important;
-    margin-bottom: 0 !important;
-  }
-  .sig-wrap {
-    min-height: 34mm !important;
-  }
-  .sig-canvas {
-    height: 34mm !important;
-    min-height: 34mm !important;
-  }
-  .validity-note {
-    margin-top: auto !important;
-    padding-top: 2mm !important;
-    padding-bottom: 0 !important;
-    border-top: 0.45mm solid #1a3a5c !important;
-    font-size: 9.2pt !important;
-    line-height: 1.3 !important;
-  }
-}
+
+
+/* FINAL OVERRIDE — единая точка правды для интервалов печати (после всех V6-V13 патчей выше) */
+
 
 </style>
 </head>
@@ -1201,7 +661,7 @@ img, canvas, select, input, button { max-width: 100%; }
     <button class="btn btn-print" onclick="window.print()">🖨 הדפס</button>
     <button class="btn btn-all" onclick="printAllPeople()">🖨 הדפס לכולם</button>
     <button class="btn btn-email" onclick="sendEmail()">✉ שלח במייל</button>
-    <button class="btn btn-save" onclick="saveDoc()">📁 שמור בתיקייה</button>
+    <button class="btn btn-save" onclick="savePDF()">📄 שמור PDF</button>
   </div>
 </div>
 
@@ -1621,8 +1081,15 @@ const ctx = canvas.getContext('2d');
 let drawing = false;
 let hasSig = false;
 let activePointerId = null;
+// Штрихи хранятся как точки без обрезки по границам холста (WACOM без экрана —
+// человек не видит, где заканчивается квадрат). После каждого отпускания пера
+// весь рисунок целиком пересчитывается и масштабируется (только уменьшение),
+// чтобы гарантированно поместиться в холст.
+const SIG_PADDING_RATIO = 0.08;
+let sigStrokes = [];
+let currentStroke = null;
 
-function getCanvasPoint(clientX, clientY) {
+function getRawPoint(clientX, clientY) {
   const rect = canvas.getBoundingClientRect();
   return {
     x: (clientX - rect.left) * (canvas.width / rect.width),
@@ -1632,16 +1099,46 @@ function getCanvasPoint(clientX, clientY) {
 
 function pointFromEvent(e) {
   if (e.touches && e.touches.length) {
-    return getCanvasPoint(e.touches[0].clientX, e.touches[0].clientY);
+    return getRawPoint(e.touches[0].clientX, e.touches[0].clientY);
   }
-  return getCanvasPoint(e.clientX, e.clientY);
+  return getRawPoint(e.clientX, e.clientY);
 }
 
-function prepareSignatureStroke() {
-  ctx.strokeStyle = '#1a3a5c';
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
+function renderSig() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!sigStrokes.length) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  sigStrokes.forEach(stroke => stroke.forEach(p => {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }));
+
+  const padX = canvas.width * SIG_PADDING_RATIO;
+  const padY = canvas.height * SIG_PADDING_RATIO;
+  const availW = canvas.width - 2 * padX;
+  const availH = canvas.height - 2 * padY;
+  const sigW = Math.max(maxX - minX, 1);
+  const sigH = Math.max(maxY - minY, 1);
+  const scale = Math.min(1, availW / sigW, availH / sigH);
+
+  const drawnW = sigW * scale;
+  const drawnH = sigH * scale;
+  const offsetX = (canvas.width - drawnW) / 2 - minX * scale;
+  const offsetY = (canvas.height - drawnH) / 2 - minY * scale;
+
+  ctx.strokeStyle = '#1a3a5c'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  sigStrokes.forEach(stroke => {
+    if (stroke.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(stroke[0].x * scale + offsetX, stroke[0].y * scale + offsetY);
+    for (let k = 1; k < stroke.length; k++) {
+      ctx.lineTo(stroke[k].x * scale + offsetX, stroke[k].y * scale + offsetY);
+    }
+    ctx.stroke();
+  });
 }
 
 function startSignatureStroke(e) {
@@ -1657,21 +1154,17 @@ function startSignatureStroke(e) {
     try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
   }
 
-  const p = pointFromEvent(e);
-  prepareSignatureStroke();
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y);
+  currentStroke = [pointFromEvent(e)];
+  sigStrokes.push(currentStroke);
 }
 
 function moveSignatureStroke(e) {
-  if (!drawing) return;
+  if (!drawing || !currentStroke) return;
   if (e.pointerId !== undefined && activePointerId !== e.pointerId) return;
   if (e.cancelable) e.preventDefault();
 
-  const p = pointFromEvent(e);
-  prepareSignatureStroke();
-  ctx.lineTo(p.x, p.y);
-  ctx.stroke();
+  currentStroke.push(pointFromEvent(e));
+  renderSig();
 
   if (!hasSig) {
     hasSig = true;
@@ -1686,7 +1179,8 @@ function endSignatureStroke(e) {
 
   drawing = false;
   activePointerId = null;
-  ctx.beginPath();
+  currentStroke = null;
+  renderSig();
 
   if (e && e.pointerId !== undefined && canvas.releasePointerCapture) {
     try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
@@ -1694,11 +1188,12 @@ function endSignatureStroke(e) {
 }
 
 // Modern pointer events: works better with Wacom, pen, mouse and touch.
+// Важно: НЕТ обработчика pointerleave — перо может уйти за пределы холста,
+// штрих не обрывается (setPointerCapture продолжает доставлять события).
 canvas.addEventListener('pointerdown', startSignatureStroke);
 canvas.addEventListener('pointermove', moveSignatureStroke);
 canvas.addEventListener('pointerup', endSignatureStroke);
 canvas.addEventListener('pointercancel', endSignatureStroke);
-canvas.addEventListener('pointerleave', endSignatureStroke);
 window.addEventListener('pointerup', endSignatureStroke);
 window.addEventListener('pointercancel', endSignatureStroke);
 
@@ -1721,6 +1216,8 @@ function markSigned() {
 }
 
 function clearSig() {
+  sigStrokes = [];
+  currentStroke = null;
   ctx.clearRect(0,0,canvas.width,canvas.height);
   hasSig = false; isSigned = false;
   document.getElementById('sigPlaceholder').style.display = 'block';
@@ -1729,6 +1226,16 @@ function clearSig() {
 }
 
 // ── SAVE ──
+function savePDF() {
+  if (!ensureCurrentPersonFromFields()) { showStatus('יש לבחור מקבל שירות או להזין ידנית', 'error'); return; }
+  if (!isSigned) { showStatus('יש לחתום לפני השמירה', 'error'); return; }
+  applyManualLive();
+  const prevTitle = document.title;
+  document.title = safeFileName(currentPerson.name) + '_ויתור_סודיות_' + renewalMonthYear();
+  window.print();
+  setTimeout(() => { document.title = prevTitle; }, 1000);
+}
+
 async function saveDoc() {
   if (!ensureCurrentPersonFromFields()) { showStatus('יש לבחור מקבל שירות או להזין ידנית', 'error'); return; }
   if (!isSigned) { showStatus('יש לחתום לפני השמירה', 'error'); return; }
@@ -1793,20 +1300,20 @@ function printCss() {
   'body{font-family:Arial Hebrew,Arial,sans-serif;color:#1e2535;}' +
   '.print-page{width:196mm;max-width:196mm;min-height:282mm;margin:0 auto;box-sizing:border-box;display:flex;flex-direction:column;overflow:visible;page-break-after:auto;break-after:auto;}' +
   '.print-page:not(:last-child){page-break-after:always;break-after:page;}' +
-  'h1{text-align:center;color:#1a3a5c;margin:0 0 1mm;font-size:15.5pt;line-height:1.1;}' +
-  '.sub{text-align:center;color:#6b7280;font-size:8.5pt;margin:0 0 3mm;}' +
-  '.text{background:#fff;border:.25mm solid #cfd8e3;padding:3mm 4mm;margin:0 0 6mm;font-size:9.3pt;line-height:1.34;text-align:justify;box-sizing:border-box;overflow:visible;}' +
-  '.text p{margin:0 0 2.2mm;}' +
+  'h1{text-align:center;color:#1a3a5c;margin:0 0 2mm;font-size:16pt;line-height:1.15;}' +
+  '.sub{text-align:center;color:#6b7280;font-size:9pt;margin:0 0 5mm;}' +
+  '.text{background:#fff;border:.25mm solid #cfd8e3;padding:4.5mm 5.5mm;margin:0 0 8mm;font-size:10.5pt;line-height:5;text-align:justify;box-sizing:border-box;overflow:visible;}' +
+  '.text p{margin:0 0 3.4mm;}' +
   '.text p:last-child{margin-bottom:0;}' +
-  '.fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7mm;margin:0 0 16mm;border-top:.45mm solid #1a3a5c;padding-top:3mm;}' +
+  '.fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9mm;margin:0 0 18mm;padding-top:4mm;}' +
   '.field{text-align:center;min-width:0;}' +
-  '.field b{display:block;font-size:8.8pt;color:#1a3a5c;margin-bottom:1.2mm;font-weight:700;}' +
-  '.field span{display:block;font-size:10pt;font-weight:600;min-height:7mm;border-bottom:.45mm solid #1a3a5c;white-space:nowrap;overflow:visible;}' +
-  '.print-signature-title{text-align:center;color:#1a3a5c;margin:0 0 2mm;font-size:15pt;line-height:1.1;font-weight:800;}' +
-  '.sig-box{border:.35mm solid #1a3a5c;border-radius:1.2mm;min-height:28mm;padding:1.2mm;text-align:center;page-break-inside:avoid;break-inside:avoid;}' +
-  '.sig-box img{max-width:150mm;height:26mm;object-fit:contain;}' +
-  '.blank-signature{height:26mm;color:#9ca3af;display:flex;align-items:center;justify-content:center;font-size:10.5pt;}' +
-  '.validity-note{margin-top:auto;padding-top:3mm;border-top:.3mm solid #cfd8e3;font-size:8.7pt;text-align:center;color:#4b5563;}' +
+  '.field b{display:block;font-size:9.3pt;color:#1a3a5c;margin-bottom:1.8mm;font-weight:700;}' +
+  '.field span{display:block;font-size:11pt;font-weight:600;min-height:8mm;border-bottom:.45mm solid #1a3a5c;white-space:nowrap;overflow:visible;}' +
+  '.print-signature-title{text-align:center;color:#1a3a5c;margin:0 0 3mm;font-size:15.5pt;line-height:1.1;font-weight:800;}' +
+  '.sig-box{border:.35mm solid #1a3a5c;border-radius:1.2mm;min-height:30mm;padding:1.5mm;text-align:center;page-break-inside:avoid;break-inside:avoid;}' +
+  '.sig-box img{max-width:150mm;height:28mm;object-fit:contain;}' +
+  '.blank-signature{height:28mm;color:#9ca3af;display:flex;align-items:center;justify-content:center;font-size:11pt;}' +
+  '.validity-note{margin-top:auto;padding-top:4mm;border-top:.3mm solid #cfd8e3;font-size:9.2pt;text-align:center;color:#4b5563;}' +
   '.footer{font-size:7.5pt;text-align:center;color:#9ca3af;margin-top:2mm;}';
 }
 
@@ -1890,14 +1397,11 @@ function showStatus(msg, type) {
 }
 
 function resizeSignatureCanvasKeepRatio() {
-  const old = document.createElement('canvas');
-  old.width = canvas.width; old.height = canvas.height;
-  old.getContext('2d').drawImage(canvas,0,0);
   const displayWidth = canvas.offsetWidth || 800;
   const displayHeight = canvas.offsetHeight || 160;
   canvas.width = displayWidth;
   canvas.height = displayHeight;
-  ctx.drawImage(old,0,0,displayWidth,displayHeight);
+  renderSig();
 }
 
 window.addEventListener('load', () => {

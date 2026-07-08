@@ -186,7 +186,7 @@ body { font-family: Heebo, Arial, sans-serif; background: var(--bg); color: var(
     <button class="btn btn-clear" onclick="clearAll()">✕ נקה</button>
     <button class="btn btn-print" onclick="window.print()">🖨 הדפס</button>
     <button class="btn btn-email" onclick="emailDoc()">✉ שלח במייל</button>
-    <button class="btn btn-save" onclick="saveDoc()">📁 שמור בתיקייה</button>
+    <button class="btn btn-save" onclick="savePDF()">📄 שמור PDF</button>
   </div>
 </div>
 <div id="statusBar" class="status-bar-top"></div>
@@ -358,36 +358,88 @@ function syncDate() {
 }
 
 // ── SIGNATURE ──
+// Точки штриха хранятся как есть (без обрезки по границам холста — WACOM без
+// экрана не даёт видеть границы). После каждого отпускания пера весь рисунок
+// пересчитывается и масштабируется (только уменьшение), чтобы поместиться в квадрат.
+const SIG_PADDING_RATIO = 0.08;
+sigState.strokes = [];
+
 function getCtx() { return document.getElementById('sigCanvas').getContext('2d'); }
-function getPoint(canvas, clientX, clientY) {
+function getRawPoint(canvas, clientX, clientY) {
   const r = canvas.getBoundingClientRect();
   return { x: (clientX - r.left) * (canvas.width / r.width), y: (clientY - r.top) * (canvas.height / r.height) };
 }
+
+function renderSig() {
+  const canvas = document.getElementById('sigCanvas');
+  const ctx = getCtx();
+  const strokes = sigState.strokes;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!strokes.length) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  strokes.forEach(stroke => stroke.forEach(p => {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }));
+
+  const padX = canvas.width * SIG_PADDING_RATIO;
+  const padY = canvas.height * SIG_PADDING_RATIO;
+  const availW = canvas.width - 2 * padX;
+  const availH = canvas.height - 2 * padY;
+  const sigW = Math.max(maxX - minX, 1);
+  const sigH = Math.max(maxY - minY, 1);
+  const scale = Math.min(1, availW / sigW, availH / sigH);
+
+  const drawnW = sigW * scale;
+  const drawnH = sigH * scale;
+  const offsetX = (canvas.width - drawnW) / 2 - minX * scale;
+  const offsetY = (canvas.height - drawnH) / 2 - minY * scale;
+
+  ctx.strokeStyle = '#1a3a5c'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  strokes.forEach(stroke => {
+    if (stroke.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(stroke[0].x * scale + offsetX, stroke[0].y * scale + offsetY);
+    for (let k = 1; k < stroke.length; k++) {
+      ctx.lineTo(stroke[k].x * scale + offsetX, stroke[k].y * scale + offsetY);
+    }
+    ctx.stroke();
+  });
+}
+
 function setupSig() {
   const canvas = document.getElementById('sigCanvas');
+  let currentStroke = null;
   function pt(e) {
-    if (e.touches && e.touches.length) return getPoint(canvas, e.touches[0].clientX, e.touches[0].clientY);
-    return getPoint(canvas, e.clientX, e.clientY);
+    if (e.touches && e.touches.length) return getRawPoint(canvas, e.touches[0].clientX, e.touches[0].clientY);
+    return getRawPoint(canvas, e.clientX, e.clientY);
   }
-  function prep() { const c=getCtx(); c.strokeStyle='#1a3a5c'; c.lineWidth=2.5; c.lineCap='round'; c.lineJoin='round'; }
   function onDown(e) {
     if (e.cancelable) e.preventDefault();
     if (sigState.activePtr !== null && e.pointerId !== undefined && e.pointerId !== sigState.activePtr) return;
     sigState.drawing = true; sigState.activePtr = e.pointerId !== undefined ? e.pointerId : 'legacy';
     if (e.pointerId !== undefined && canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch(_) {} }
-    const p = pt(e); prep(); getCtx().beginPath(); getCtx().moveTo(p.x, p.y);
+    currentStroke = [pt(e)];
+    sigState.strokes.push(currentStroke);
   }
   function onMove(e) {
-    if (!sigState.drawing) return;
+    if (!sigState.drawing || !currentStroke) return;
     if (e.pointerId !== undefined && sigState.activePtr !== e.pointerId) return;
     if (e.cancelable) e.preventDefault();
-    const p = pt(e); prep(); getCtx().lineTo(p.x, p.y); getCtx().stroke(); sigState.hasSig = true;
+    currentStroke.push(pt(e));
+    sigState.hasSig = true;
+    renderSig();
   }
   function onUp(e) {
     if (e && e.pointerId !== undefined && sigState.activePtr !== e.pointerId) return;
-    sigState.drawing = false; sigState.activePtr = null; getCtx().beginPath();
+    sigState.drawing = false; sigState.activePtr = null; currentStroke = null;
     if (e && e.pointerId !== undefined && canvas.releasePointerCapture) { try { canvas.releasePointerCapture(e.pointerId); } catch(_) {} }
+    renderSig();
   }
+  // НЕТ обработчика pointerleave — перо может уйти за пределы холста, штрих не обрывается.
   canvas.addEventListener('pointerdown', onDown);
   canvas.addEventListener('pointermove', onMove);
   canvas.addEventListener('pointerup', onUp);
@@ -403,18 +455,28 @@ function setupSig() {
   }
 }
 function clearSig() {
+  sigState.strokes = [];
+  sigState.hasSig = false;
   const canvas = document.getElementById('sigCanvas');
   getCtx().clearRect(0, 0, canvas.width, canvas.height);
-  sigState.hasSig = false;
 }
 function resizeSig() {
   const canvas = document.getElementById('sigCanvas');
-  const old = document.createElement('canvas');
-  old.width = canvas.width; old.height = canvas.height;
-  old.getContext('2d').drawImage(canvas, 0, 0);
-  canvas.width = canvas.offsetWidth || 740;
-  canvas.height = canvas.offsetHeight || 100;
-  canvas.getContext('2d').drawImage(old, 0, 0, canvas.width, canvas.height);
+  if (sigState.strokes.length) {
+    canvas.width = canvas.offsetWidth || 740;
+    canvas.height = canvas.offsetHeight || 100;
+    renderSig();
+  } else if (sigState.hasSig) {
+    const old = document.createElement('canvas');
+    old.width = canvas.width; old.height = canvas.height;
+    old.getContext('2d').drawImage(canvas, 0, 0);
+    canvas.width = canvas.offsetWidth || 740;
+    canvas.height = canvas.offsetHeight || 100;
+    canvas.getContext('2d').drawImage(old, 0, 0, canvas.width, canvas.height);
+  } else {
+    canvas.width = canvas.offsetWidth || 740;
+    canvas.height = canvas.offsetHeight || 100;
+  }
 }
 
 // ── CLEAR ALL ──
@@ -508,6 +570,17 @@ function restoreSavedSig() {
 
 function safeFileName(v) { return ((v||'ללא_שם').toString().trim().replace(/[\\\/:*?"<>|]/g,'-').replace(/\s+/g,'_')).slice(0,80); }
 function formatDateInput2() { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function savePDF() {
+  const name = document.getElementById('manualName').value.trim();
+  if (!name) { showStatus('יש להזין שם מקבל שירות', 'error'); return; }
+  if (!permission) { showStatus('יש לבחור מאשר/ת או לא מאשר/ת', 'error'); return; }
+  applyLive();
+  const prevTitle = document.title;
+  document.title = safeFileName(name) + '_אישור_צילום_' + formatDateInput2().slice(0,7);
+  window.print();
+  setTimeout(() => { document.title = prevTitle; }, 1000);
+}
 
 async function saveDoc() {
   const name = document.getElementById('manualName').value.trim();

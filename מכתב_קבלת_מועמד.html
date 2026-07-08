@@ -122,7 +122,7 @@ body { font-family: Heebo, Arial, sans-serif; background: var(--bg); color: var(
     <button class="btn btn-clear" onclick="clearAll()">✕ נקה</button>
     <button class="btn btn-print" onclick="window.print()">🖨 הדפס</button>
     <button class="btn btn-email" onclick="emailDoc()">✉ שלח במייל</button>
-    <button class="btn btn-save" onclick="saveDoc()">📁 שמור בתיקייה</button>
+    <button class="btn btn-save" onclick="savePDF()">📄 שמור PDF</button>
   </div>
 </div>
 <div id="statusBar" class="status-bar-top"></div>
@@ -304,6 +304,16 @@ async function emailDoc() {
   const body = encodeURIComponent('הקובץ ירד למכשיר. יש לצרף אותו למייל ידנית.');
   window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
   showStatus('הקובץ הורד. יש לצרף אותו למייל ידנית.', 'error');
+}
+
+function savePDF() {
+  const name = document.getElementById('manualName').value.trim();
+  if (!name) { showStatus('יש להזין שם מקבל שירות', 'error'); return; }
+  applyLive();
+  const prevTitle = document.title;
+  document.title = buildFileName(name).replace(/\.html$/, '');
+  window.print();
+  setTimeout(() => { document.title = prevTitle; }, 1000);
 }
 
 async function saveDoc() {
