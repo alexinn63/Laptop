@@ -195,13 +195,16 @@ body {
     <!-- 1. תיעוד שיחה עם -->
     <div class="field">
       <div class="field-label"><span class="field-num">1</span>תיעוד שיחה עם <span class="req">*</span></div>
+      <div id="nameChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;"></div>
       <div style="position:relative;">
-        <input type="text" id="nameInput" autocomplete="off"
-          placeholder="הקלד שם..."
+        <input type="text" id="nameSearch" autocomplete="off"
+          placeholder="הקלד שם והוסף..."
           style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:var(--yellow-light);"
           oninput="onNameInput(this.value)" onblur="hideNameSug()">
         <div id="nameSuggestions" style="display:none;position:absolute;top:100%;right:0;left:0;background:white;border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
       </div>
+      <!-- hidden: keeps comma-joined names so the rest of the pipeline works unchanged -->
+      <input type="hidden" id="nameInput" value="">
     </div>
 
     <!-- 2. תועד ע"י -->
@@ -314,7 +317,7 @@ const DEFAULT_TOPICS = [
   'מפריע בשיחות','מאזין למוזיקה בקול רם',
   'חשבון מעוקל','מצב הבריאותי','היעדרות מעבודה',
   'התנהגות בלתי הולמת','מראה והיגיינה',
-  'דיבורים בזמן העבודה','סיום העסקה במפעל','אחר'
+  'דיבורים בזמן העבודה','סירוב לבצע עבודה עקב תעריף נמוך','סיום העסקה במפעל','אחר'
 ];
 let selectedTopic = '';
 let selectedName = '';
@@ -355,31 +358,56 @@ function loadExcel(input) {
 
 function selectPerson() {}
 
-// ── NAME AUTOCOMPLETE ──
+// ── NAME MULTI-SELECT (chips) ──
+let selectedNames = [];
+
+function syncNames() {
+  // keep hidden #nameInput as comma-joined string so rest of code is unchanged
+  document.getElementById('nameInput').value = selectedNames.join(', ');
+  selectedName = selectedNames.join(', ');
+  renderChips();
+}
+function renderChips() {
+  const box = document.getElementById('nameChips');
+  if (!box) return;
+  box.innerHTML = selectedNames.map((n,i) =>
+    `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--blue,#2563a8);color:#fff;border-radius:16px;padding:4px 10px;font-size:13px;">${n}<span style="cursor:pointer;font-weight:700;" onclick="removeName(${i})">×</span></span>`
+  ).join('');
+}
+function removeName(i) {
+  selectedNames.splice(i, 1);
+  syncNames();
+}
+function addName(name) {
+  name = name.trim();
+  if (name && !selectedNames.includes(name)) {
+    selectedNames.push(name);
+    syncNames();
+  }
+  const s = document.getElementById('nameSearch');
+  if (s) s.value = '';
+  document.getElementById('nameSuggestions').style.display = 'none';
+}
 function onNameInput(val) {
-  selectedName = val.trim();
-  document.getElementById('fDate'); // keep date
   const q = val.trim();
   const box = document.getElementById('nameSuggestions');
   if (!q) { box.style.display='none'; return; }
   const list = allPeople.length ? allPeople.map(p=>p.name) : NAMES;
-  const matches = list.filter(n => n.replace(/\s+/g,' ').includes(q));
-  if (!matches.length) { box.style.display='none'; return; }
-  box.innerHTML = matches.slice(0,8).map(n =>
-    `<div style="padding:9px 14px;cursor:pointer;font-size:14px;" onmouseover="this.style.background='#fffbe6'" onmouseout="this.style.background=''" onmousedown="pickName('${n.replace(/'/g,"\'")}')">` + n + '</div>'
-  ).join('');
+  const matches = list.filter(n => n.replace(/\s+/g,' ').includes(q) && !selectedNames.includes(n));
+  // allow adding a free-typed name that isn't in the list
+  const opts = matches.slice(0,8);
+  box.innerHTML = opts.map(n =>
+    `<div style="padding:9px 14px;cursor:pointer;font-size:14px;" onmouseover="this.style.background='#fffbe6'" onmouseout="this.style.background=''" onmousedown="addName('${n.replace(/'/g,"\\'")}')">` + n + '</div>'
+  ).join('') +
+  `<div style="padding:9px 14px;cursor:pointer;font-size:14px;border-top:1px solid #eee;color:var(--blue,#2563a8);" onmousedown="addName('${q.replace(/'/g,"\\'")}')">➕ הוסף "${q}"</div>`;
   box.style.display = 'block';
 }
-function pickName(name) {
-  selectedName = name;
-  document.getElementById('nameInput').value = name;
-  document.getElementById('nameSuggestions').style.display = 'none';
-}
+function pickName(name) { addName(name); }
 function hideNameSug() {
   setTimeout(() => { document.getElementById('nameSuggestions').style.display='none'; }, 200);
 }
 function renderNameOptions() {}
-function selectNameVal(name) { pickName(name); }
+function selectNameVal(name) { addName(name); }
 function filterNames() {}
 
 // ── STAFF ──
@@ -476,8 +504,15 @@ function buildPageHTML() {
     }
   });
 
-  // ── Name input ──
+  // ── Names (multi) — render as visible read-only text in the saved doc ──
   const nameVal = document.getElementById('nameInput').value;
+  const clNameChips = clone.querySelector('#nameChips');
+  const clNameSearch = clone.querySelector('#nameSearch');
+  if (clNameSearch) clNameSearch.remove(); // no search box in the saved doc
+  if (clNameChips) {
+    clNameChips.style.display = 'block';
+    clNameChips.innerHTML = `<div style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--yellow-light);">${nameVal || ''}</div>`;
+  }
   const clName = clone.querySelector('#nameInput');
   if (clName) clName.setAttribute('value', nameVal);
 
@@ -530,6 +565,12 @@ function buildPageHTML() {
         if (s) s.value = _savedStaff;
         window.selectedName  = _savedName;
         window.selectedTopic = _savedTopic;
+        try {
+          if (typeof selectedNames !== 'undefined') {
+            selectedNames = _savedName ? _savedName.split(',').map(function(s){return s.trim();}).filter(Boolean) : [];
+            if (typeof renderChips === 'function') renderChips();
+          }
+        } catch(e) {}
         // Auto-resize textareas
         ['content','summary'].forEach(function(id) {
           var ta = document.getElementById(id);
@@ -579,6 +620,8 @@ async function emailDoc() {
 
 function clearAll() {
   selectedName=''; selectedTopic=''; fileDataList=[];
+  selectedNames=[]; renderChips();
+  const ns=document.getElementById('nameSearch'); if(ns) ns.value='';
   document.getElementById('nameInput').value='';
   document.getElementById('staffSelect').value='';
   document.getElementById('staffOther').style.display='none';
@@ -587,7 +630,7 @@ function clearAll() {
   document.getElementById('topicDisplayText').textContent='בחר נושא...';
   document.getElementById('content').value='';
   document.getElementById('summary').value='';
-  document.getElementById('fName').textContent='';
+  var _fn=document.getElementById('fName'); if(_fn) _fn.textContent='';
   document.getElementById('fDate').textContent=dateToHe(formatDate());
   renderFileList();
   showStatus('','');
